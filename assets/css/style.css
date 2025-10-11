@@ -77,6 +77,23 @@ body {
     color: #fff;
 }
 
+.user-menu-btn {
+    background: #fff;
+    border: 1px solid rgba(31, 42, 68, 0.12);
+    color: #1f2a44;
+    font-weight: 500;
+    padding: 0.45rem 1rem;
+}
+
+.user-menu-btn:hover,
+.user-menu-btn:focus,
+.user-menu-btn.show {
+    background: #2f57d3;
+    border-color: #2f57d3;
+    color: #fff;
+    box-shadow: none;
+}
+
 .content {
     padding: 0 1.5rem 1.5rem;
 }
