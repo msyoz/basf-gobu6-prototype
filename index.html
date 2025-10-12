@@ -226,6 +226,7 @@
                             <td><span class="badge bg-success">活跃</span></td>
                             <td class="text-end">
                                 <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#tenantCostModal">成本详情</button>
+                                <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="NeoChem">用户</button>
                                 <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#tenantEditModal">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
@@ -239,6 +240,7 @@
                             <td><span class="badge bg-success">活跃</span></td>
                             <td class="text-end">
                                 <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#tenantCostModal">成本详情</button>
+                                <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="AgriFuture">用户</button>
                                 <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#tenantEditModal">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
@@ -252,6 +254,7 @@
                             <td><span class="badge bg-warning text-dark">试用</span></td>
                             <td class="text-end">
                                 <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#tenantCostModal">成本详情</button>
+                                <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="BioTech Labs">用户</button>
                                 <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#tenantEditModal">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
@@ -783,6 +786,67 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tenantUsersModal" tabindex="-1" aria-labelledby="tenantUsersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tenantUsersModalLabel">租户用户管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <div class="fw-semibold" id="tenantUsersModalTenant">NeoChem</div>
+                            <small class="text-muted">在此管理租户内的成员与角色</small>
+                        </div>
+                        <span class="badge bg-light text-dark">内置角色：租户拥有者 / 租户使用者</span>
+                    </div>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm align-middle" id="tenantUsersTable">
+                            <thead>
+                                <tr>
+                                    <th>姓名</th>
+                                    <th>邮箱</th>
+                                    <th>角色</th>
+                                    <th class="text-end">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tenantUsersTableBody">
+                                <tr class="placeholder-row">
+                                    <td colspan="4" class="text-center text-muted">请选择租户以查看成员</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="tenantUsersFeedback" class="text-success small mb-3" role="status"></div>
+                    <form id="tenantUsersForm" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="tenantUserName" class="form-label">姓名</label>
+                            <input type="text" class="form-control" id="tenantUserName" name="name" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="tenantUserEmail" class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="tenantUserEmail" name="email" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="tenantUserRole" class="form-label">角色</label>
+                            <select class="form-select" id="tenantUserRole" name="role" required>
+                                <option value="租户拥有者">租户拥有者</option>
+                                <option value="租户使用者">租户使用者</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">添加用户</button>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>

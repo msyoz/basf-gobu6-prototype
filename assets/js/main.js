@@ -79,6 +79,22 @@ const roleAssignments = {
     }
 };
 
+const tenantUserRoles = ['租户拥有者', '租户使用者'];
+const tenantUsersDirectory = {
+    NeoChem: [
+        { name: 'Chen Yu', email: 'chenyu@neochem.cn', role: '租户拥有者' },
+        { name: 'Sun Tao', email: 'suntao@neochem.cn', role: '租户使用者' }
+    ],
+    AgriFuture: [
+        { name: 'Gao Ling', email: 'gaoling@agrifuture.cn', role: '租户拥有者' },
+        { name: 'Ma Rui', email: 'marui@agrifuture.cn', role: '租户使用者' }
+    ],
+    'BioTech Labs': [
+        { name: 'Luo Bin', email: 'luobin@biocloud.cn', role: '租户拥有者' },
+        { name: 'He Na', email: 'hena@biocloud.cn', role: '租户使用者' }
+    ]
+};
+
 function createTabId(page) {
     return `tab-${page}`;
 }
@@ -247,6 +263,37 @@ function renderRoleUsers(tbody, users = []) {
         .join('');
 }
 
+function getTenantUsers(tenantName) {
+    if (!tenantName) return [];
+    if (!tenantUsersDirectory[tenantName]) {
+        tenantUsersDirectory[tenantName] = [];
+    }
+    return tenantUsersDirectory[tenantName];
+}
+
+function renderTenantUsersTable(tbody, tenantName) {
+    if (!tbody) return;
+    const users = getTenantUsers(tenantName);
+
+    if (users.length === 0) {
+        tbody.innerHTML = '<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">当前租户暂无成员</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = users
+        .map((user, index) => `
+            <tr>
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+                <td>${user.role}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-danger" data-action="remove-tenant-user" data-index="${index}">移除</button>
+                </td>
+            </tr>
+        `)
+        .join('');
+}
+
 function initializeRolesTab(container) {
     const roleList = container.querySelector('#roleList');
     const roleTitle = container.querySelector('#roleUserTitle');
@@ -295,6 +342,76 @@ function initializeRolesTab(container) {
         roleTitle.textContent = roleName;
         roleDescription.textContent = roleInfo.description || '此角色暂无说明。';
         renderRoleUsers(userTableBody, roleInfo.users);
+    });
+}
+
+function initTenantUsersModal() {
+    const modalElement = document.getElementById('tenantUsersModal');
+    if (!modalElement) return;
+
+    const modalTitle = modalElement.querySelector('#tenantUsersModalLabel');
+    const tenantLabel = modalElement.querySelector('#tenantUsersModalTenant');
+    const tableBody = modalElement.querySelector('#tenantUsersTableBody');
+    const feedback = modalElement.querySelector('#tenantUsersFeedback');
+    const form = modalElement.querySelector('#tenantUsersForm');
+    const roleSelect = modalElement.querySelector('#tenantUserRole');
+    let currentTenant = '';
+
+    const setFeedback = (message, isError = false) => {
+        feedback.textContent = message;
+        feedback.classList.toggle('text-danger', isError);
+        feedback.classList.toggle('text-success', !isError);
+    };
+
+    modalElement.addEventListener('show.bs.modal', event => {
+        const trigger = event.relatedTarget;
+        currentTenant = trigger?.dataset.tenant || '';
+        tenantLabel.textContent = currentTenant || '未选择租户';
+        modalTitle.textContent = currentTenant ? `租户用户管理 - ${currentTenant}` : '租户用户管理';
+        form.reset();
+        roleSelect.value = tenantUserRoles[0];
+        setFeedback('');
+        renderTenantUsersTable(tableBody, currentTenant);
+    });
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+        if (!currentTenant) return;
+
+        const formData = new FormData(form);
+        const name = (formData.get('name') || '').trim();
+        const email = (formData.get('email') || '').trim();
+        const role = formData.get('role');
+
+        if (!name || !email || !role) return;
+
+        const users = getTenantUsers(currentTenant);
+        const exists = users.some(user => user.email.toLowerCase() === email.toLowerCase());
+        if (exists) {
+            setFeedback('该邮箱已存在，无需重复添加。', true);
+            return;
+        }
+
+        // Persist mock user assignments per tenant for demo interactions.
+        users.push({ name, email, role });
+        renderTenantUsersTable(tableBody, currentTenant);
+        form.reset();
+    roleSelect.value = tenantUserRoles[0];
+        setFeedback(`已添加 ${name} (${role})`);
+    });
+
+    tableBody.addEventListener('click', event => {
+        const removeBtn = event.target.closest('[data-action="remove-tenant-user"]');
+        if (!removeBtn || !currentTenant) return;
+
+        const index = Number(removeBtn.dataset.index);
+        const users = getTenantUsers(currentTenant);
+
+        if (Number.isInteger(index) && index >= 0 && index < users.length) {
+            const [removed] = users.splice(index, 1);
+            renderTenantUsersTable(tableBody, currentTenant);
+            setFeedback(removed ? `已移除 ${removed.name}` : '');
+        }
     });
 }
 
@@ -437,5 +554,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initDelegates();
     initChat();
     initSidebar();
+    initTenantUsersModal();
     bootstrapDefaultTabs();
 });
