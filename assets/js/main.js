@@ -23,6 +23,12 @@ const appResources = {
         { name: 'ds-ai-data-lake', type: 'Data Lake', status: '警告', cost: '¥ 4,560' },
         { name: 'func-ai-event', type: '函数', status: '运行', cost: '¥ 860' }
     ],
+    'NeoChem ESG Portal': [
+        { name: 'rg-neochem-esg', type: '资源组', status: '待创建', cost: '预估 ¥ 0' },
+        { name: 'aks-esg-cluster', type: '容器服务', status: '待创建', cost: '预估 ¥ 9,500' },
+        { name: 'db-esg-analytics', type: '数据库', status: '待创建', cost: '预估 ¥ 6,800' },
+        { name: 'app-esg-api', type: '应用服务', status: '待创建', cost: '预估 ¥ 2,600' }
+    ],
     'BioCloud LIMS': [
         { name: 'vm-lims-prod-01', type: '虚拟机', status: '运行', cost: '¥ 2,980' },
         { name: 'sql-lims-prod', type: '数据库', status: '运行', cost: '¥ 6,340' },
@@ -181,12 +187,26 @@ function initializeApplicationsTab(container, payload) {
     });
 
     appRows.forEach(row => {
-        row.addEventListener('click', () => {
+        row.addEventListener('click', event => {
+            if (event.target.closest('button')) return;
             const appName = row.dataset.app;
             if (!appName) return;
-            resourceLabel.textContent = `${appName} 的资源`;
-            renderResourceTable(resourceTableBody, appResources[appName]);
+            const isPendingApproval = row.dataset.status === 'pending';
+            resourceLabel.textContent = isPendingApproval ? `${appName} 的拟创建资源` : `${appName} 的资源`;
+            renderResourceTable(resourceTableBody, appResources[appName], { isPendingApproval });
         });
+
+        const approveBtn = row.querySelector('[data-action="approve-app"]');
+        if (approveBtn) {
+            approveBtn.addEventListener('click', event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const appName = row.dataset.app || '该应用';
+                if (confirm(`确认批准"${appName}"的创建申请？`)) {
+                    alert('已提交批准，系统将开始部署流程。');
+                }
+            });
+        }
     });
 
     if (payload.tenant) {
@@ -224,24 +244,43 @@ function selectTenantInApplications(tenant, app) {
     }
 }
 
-function renderResourceTable(tbody, resources = []) {
+function renderResourceTable(tbody, resources = [], options = {}) {
+    const { isPendingApproval = false } = options;
+
     if (!resources || resources.length === 0) {
-        tbody.innerHTML = '<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">暂无资源信息</td></tr>';
+        const message = isPendingApproval ? '审批通过后将创建资源清单。' : '暂无资源信息';
+        tbody.innerHTML = `<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">${message}</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = resources
-        .map(resource => `
+    const statusClassMap = {
+        '运行': 'bg-success',
+        '警告': 'bg-warning text-dark',
+        '部署中': 'bg-warning text-dark',
+        '待机': 'bg-secondary',
+        '待创建': 'bg-info text-dark'
+    };
+
+    const infoRow = isPendingApproval ? '<tr class="table-info"><td colspan="4" class="text-muted">以下资源将在批准后自动创建。</td></tr>' : '';
+
+    const resourceRows = resources
+        .map(resource => {
+            const statusClass = statusClassMap[resource.status] || 'bg-secondary';
+            const cost = resource.cost || '--';
+            return `
             <tr>
                 <td>${resource.name}</td>
                 <td>${resource.type}</td>
                 <td>
-                    <span class="badge ${resource.status === '运行' ? 'bg-success' : resource.status === '警告' ? 'bg-warning text-dark' : 'bg-secondary'}">${resource.status}</span>
+                    <span class="badge ${statusClass}">${resource.status}</span>
                 </td>
-                <td>${resource.cost}</td>
+                <td>${cost}</td>
             </tr>
-        `)
+        `;
+        })
         .join('');
+
+    tbody.innerHTML = infoRow + resourceRows;
 }
 
 function renderRoleUsers(tbody, users = []) {
@@ -474,8 +513,18 @@ function renderResourceTableFromElement(tabPane, appName) {
     const resourceLabel = tabPane.querySelector('#resourceAppLabel');
     if (!resourceTableBody) return;
 
-    resourceLabel.textContent = `${appName} 的资源`;
-    renderResourceTable(resourceTableBody, appResources[appName]);
+    let isPendingApproval = false;
+    const tableRows = Array.from(tabPane.querySelectorAll('#applicationsTable tbody tr'));
+    const targetRow = tableRows.find(row => row.dataset.app === appName);
+
+    if (targetRow?.dataset.status === 'pending') {
+        isPendingApproval = true;
+        resourceLabel.textContent = `${appName} 的拟创建资源`;
+    } else {
+        resourceLabel.textContent = `${appName} 的资源`;
+    }
+
+    renderResourceTable(resourceTableBody, appResources[appName], { isPendingApproval });
 }
 
 function toggleChat(open) {
@@ -502,7 +551,7 @@ function addChatMessage(type, text) {
 function fakeChatReply(question) {
     const cannedReplies = [
         '该功能正在设计中，请查看最新的用户手册章节以获取流程指引。',
-        '若需部署新应用，可在应用管理页面点击“创建应用”，并选择合适的模板与参数。',
+    '若需部署新应用，可在应用管理页面点击“申请应用创建”，并选择合适的模板与参数。',
         '成本报告可在租户管理页面通过“成本详情”查看或导出。'
     ];
     const reply = cannedReplies[Math.floor(Math.random() * cannedReplies.length)];
