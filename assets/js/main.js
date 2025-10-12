@@ -30,6 +30,55 @@ const appResources = {
     ]
 };
 
+const roleAssignments = {
+    'Platform Admins': {
+        description: '平台管理员，具备最高的权限',
+        users: [
+            { name: 'Admin User', email: 'admin@rd-digital.com', tenant: 'Platform' },
+            { name: 'Liang Chen', email: 'liang.chen@rd-digital.com', tenant: 'Platform' }
+        ]
+    },
+    'Tenant Admins': {
+        description: '租户管理员，具备租户管理的权限',
+        users: [
+            { name: 'Zhao Yun', email: 'zhaoyun@neochem.cn', tenant: 'NeoChem' },
+            { name: 'Li Lei', email: 'lilei@agrifuture.cn', tenant: 'AgriFuture' },
+            { name: 'Wang Fang', email: 'wangfang@biocloud.cn', tenant: 'BioTech Labs' }
+        ]
+    },
+    'App Admins': {
+        description: '应用管理员，具备应用管理的权限，可以批准应用的申请',
+        users: [
+            { name: 'Liu Yang', email: 'liuyang@apps.cn', tenant: 'NeoChem' },
+            { name: 'Qin Mei', email: 'qinmei@apps.cn', tenant: 'AgriFuture' }
+        ]
+    },
+    'Template Admins': {
+        description: '应用模板管理员，具备模板管理的权限',
+        users: [
+            { name: 'Zhang Wei', email: 'zhangwei@rd-digital.com', tenant: 'Platform' },
+            { name: 'Hou Min', email: 'houmin@rd-digital.com', tenant: 'Platform' }
+        ]
+    },
+    'Tenant Owners': {
+        description: '租户所有者，可以对所在租户进行完全的管理',
+        users: [
+            { name: 'Chen Yu', email: 'chenyu@neochem.cn', tenant: 'NeoChem' },
+            { name: 'Gao Ling', email: 'gaoling@agrifuture.cn', tenant: 'AgriFuture' },
+            { name: 'Luo Bin', email: 'luobin@biocloud.cn', tenant: 'BioTech Labs' }
+        ]
+    },
+    'Tenant Users': {
+        description: '租户使用者，可以访问所在租户的应用，包括知识库问答',
+        users: [
+            { name: 'Sun Tao', email: 'suntao@neochem.cn', tenant: 'NeoChem' },
+            { name: 'Ma Rui', email: 'marui@agrifuture.cn', tenant: 'AgriFuture' },
+            { name: 'He Na', email: 'hena@biocloud.cn', tenant: 'BioTech Labs' },
+            { name: 'Feng Kai', email: 'fengkai@biocloud.cn', tenant: 'BioTech Labs' }
+        ]
+    }
+};
+
 function createTabId(page) {
     return `tab-${page}`;
 }
@@ -97,6 +146,8 @@ function openTab(page, title, payload = {}) {
     // 额外初始化逻辑
     if (page === 'applications') {
         initializeApplicationsTab(tabPane, payload);
+    } else if (page === 'roles') {
+        initializeRolesTab(tabPane);
     }
 }
 
@@ -175,6 +226,76 @@ function renderResourceTable(tbody, resources = []) {
             </tr>
         `)
         .join('');
+}
+
+function renderRoleUsers(tbody, users = []) {
+    if (!tbody) return;
+
+    if (!users || users.length === 0) {
+        tbody.innerHTML = '<tr class="placeholder-row"><td colspan="3" class="text-center text-muted">当前角色未分配用户</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = users
+        .map(user => `
+            <tr>
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+                <td>${user.tenant || '--'}</td>
+            </tr>
+        `)
+        .join('');
+}
+
+function initializeRolesTab(container) {
+    const roleList = container.querySelector('#roleList');
+    const roleTitle = container.querySelector('#roleUserTitle');
+    const roleDescription = container.querySelector('#roleDescription');
+    const userTableBody = container.querySelector('#roleUsersTable tbody');
+
+    if (!roleList || !roleTitle || !roleDescription || !userTableBody) return;
+
+    roleList.innerHTML = '';
+    const roles = Object.entries(roleAssignments);
+
+    if (roles.length === 0) {
+        roleList.innerHTML = '<div class="list-group-item">暂无系统角色</div>';
+        renderRoleUsers(userTableBody, []);
+        roleTitle.textContent = '无可用角色';
+        roleDescription.textContent = '系统尚未配置内置角色。';
+        return;
+    }
+
+    roles.forEach(([roleName, roleInfo], index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+        button.dataset.role = roleName;
+        button.innerHTML = `<span>${roleName}</span><span class="badge bg-secondary">${roleInfo.users.length}</span>`;
+        if (index === 0) {
+            button.classList.add('active');
+            roleTitle.textContent = roleName;
+            roleDescription.textContent = roleInfo.description || '此角色暂无说明。';
+            renderRoleUsers(userTableBody, roleInfo.users);
+        }
+        roleList.appendChild(button);
+    });
+
+    roleList.addEventListener('click', event => {
+        const target = event.target.closest('.list-group-item-action');
+        if (!target || target.classList.contains('active')) return;
+
+        roleList.querySelectorAll('.list-group-item-action').forEach(item => item.classList.remove('active'));
+        target.classList.add('active');
+
+        const roleName = target.dataset.role;
+        const roleInfo = roleAssignments[roleName];
+        if (!roleInfo) return;
+
+        roleTitle.textContent = roleName;
+        roleDescription.textContent = roleInfo.description || '此角色暂无说明。';
+        renderRoleUsers(userTableBody, roleInfo.users);
+    });
 }
 
 function handleTabClose(event) {

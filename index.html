@@ -30,10 +30,10 @@
                     <i class="bi bi-grid me-2"></i>应用管理
                 </a>
                 <a class="nav-link" href="#" data-page="resources">
-                    <i class="bi bi-cloud-check me-2"></i>云资源总览
+                    <i class="bi bi-cloud-check me-2"></i>云资源
                 </a>
                 <a class="nav-link" href="#" data-page="templates">
-                    <i class="bi bi-box-seam me-2"></i>应用模板
+                    <i class="bi bi-box-seam me-2"></i>模板管理
                 </a>
                 <a class="nav-link" href="#" data-page="roles">
                     <i class="bi bi-person-badge me-2"></i>角色管理
@@ -59,7 +59,7 @@
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-3">
-                    <button class="btn btn-icon" id="chatToggle" aria-label="打开QnA聊天">
+                    <button class="btn btn-icon" id="chatToggle" aria-label="打开知识助手">
                         <i class="bi bi-chat-dots"></i>
                     </button>
                     <div class="dropdown">
@@ -70,7 +70,7 @@
                             <li><h6 class="dropdown-header">Admin User</h6></li>
                             <li><span class="dropdown-item-text text-muted">admin@rd-digital.com</span></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">个人设置</a></li>
+                            <li><a class="dropdown-item" href="#">个人信息</a></li>
                             <li><a class="dropdown-item" href="#">退出登录</a></li>
                         </ul>
                     </div>
@@ -85,51 +85,50 @@
 
     <div class="chat-panel shadow" id="chatPanel">
         <div class="chat-header d-flex justify-content-between align-items-center">
-            <div><i class="bi bi-question-circle me-2"></i>用户手册 QnA</div>
+            <div><i class="bi bi-question-circle me-2"></i>知识助手 QnA</div>
             <button class="btn btn-sm btn-outline-secondary" id="chatClose">关闭</button>
         </div>
         <div class="chat-body" id="chatMessages">
             <div class="chat-message bot">
                 <div class="name">知识助手</div>
-                <div class="bubble">您好，我可以回答关于 RD Digital Platform 的任何问题。</div>
+                <div class="bubble">您好，我可以帮助解答平台相关问题。</div>
             </div>
         </div>
         <form class="chat-input" id="chatForm">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="输入您的问题..." required>
+                <input type="text" class="form-control" placeholder="请输入问题..." required>
                 <button class="btn btn-primary" type="submit">发送</button>
             </div>
         </form>
     </div>
 
-    <!-- 页面模板 -->
     <template id="page-dashboard">
         <section class="p-4">
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
                     <div class="card kpi-card">
                         <div class="card-body">
-                            <div class="kpi-label">活跃租户</div>
+                            <div class="kpi-label">租户总数</div>
                             <div class="kpi-value">36</div>
-                            <div class="kpi-trend text-success"><i class="bi bi-arrow-up"></i> 12% 较上月</div>
+                            <div class="kpi-trend text-success"><i class="bi bi-arrow-up"></i> 较上月 +12%</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card kpi-card">
                         <div class="card-body">
-                            <div class="kpi-label">部署应用</div>
+                            <div class="kpi-label">应用数量</div>
                             <div class="kpi-value">128</div>
-                            <div class="kpi-trend text-success"><i class="bi bi-arrow-up"></i> 8% 较上月</div>
+                            <div class="kpi-trend text-success"><i class="bi bi-arrow-up"></i> 较上月 +8%</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card kpi-card">
                         <div class="card-body">
-                            <div class="kpi-label">云资源成本 (本月)</div>
+                            <div class="kpi-label">云资源成本（月）</div>
                             <div class="kpi-value">¥ 482,560</div>
-                            <div class="kpi-trend text-danger"><i class="bi bi-arrow-up"></i> 5% 较上月</div>
+                            <div class="kpi-trend text-danger"><i class="bi bi-arrow-up"></i> 较上月 +5%</div>
                         </div>
                     </div>
                 </div>
@@ -139,15 +138,15 @@
                     <div class="card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-0">关键趋势</h6>
-                                <small class="text-muted">过去12个月租户与应用增长</small>
+                                <h6 class="mb-0">近期事件</h6>
+                                <small class="text-muted">过去 12 小时的关键活动</small>
                             </div>
                             <div>
-                                <button class="btn btn-sm btn-outline-secondary">导出</button>
+                                <button class="btn btn-sm btn-outline-secondary">刷新</button>
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="placeholder-chart">折线图占位</div>
+                            <div class="placeholder-chart">图表占位</div>
                         </div>
                     </div>
                 </div>
@@ -163,25 +162,25 @@
                                     警告 <span class="badge bg-warning text-dark">21</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    需要关注 <span class="badge bg-danger">7</span>
+                                    需关注 <span class="badge bg-danger">7</span>
                                 </li>
                             </ul>
                         </div>
                     </div>
                     <div class="card">
-                        <div class="card-header">最新活动</div>
+                        <div class="card-header">待办提醒</div>
                         <div class="list-group list-group-flush">
                             <div class="list-group-item">
-                                <div class="fw-semibold">Tenant A 创建新应用</div>
+                                <div class="fw-semibold">Tenant A 待审批应用</div>
                                 <small class="text-muted">10 分钟前</small>
                             </div>
                             <div class="list-group-item">
-                                <div class="fw-semibold">自动扩容完成</div>
+                                <div class="fw-semibold">发布 Terraform 模板 v1.6</div>
                                 <small class="text-muted">1 小时前</small>
                             </div>
                             <div class="list-group-item">
-                                <div class="fw-semibold">发布 Terraform 模板 v1.6</div>
-                                <small class="text-muted">昨天</small>
+                                <div class="fw-semibold">提交本月成本报告</div>
+                                <small class="text-muted">今日</small>
                             </div>
                         </div>
                     </div>
@@ -507,65 +506,43 @@
 
     <template id="page-roles">
         <section class="p-4 h-100 d-flex flex-column">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h5 class="mb-1">角色管理</h5>
-                    <small class="text-muted">分配平台访问权限与职责</small>
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#roleAssignModal">授权用户</button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#roleAddModal">
-                        <i class="bi bi-plus-lg me-1"></i>添加角色
-                    </button>
-                </div>
+            <div class="mb-3">
+                <h5 class="mb-1">角色管理</h5>
+                <small class="text-muted">系统预置角色不可编辑，可查看角色成员及所属租户。</small>
             </div>
-            <div class="table-responsive flex-grow-1">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th>角色名称</th>
-                            <th>说明</th>
-                            <th>绑定用户</th>
-                            <th>创建时间</th>
-                            <th class="text-end">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>平台管理员</td>
-                            <td>拥有全部权限</td>
-                            <td>12</td>
-                            <td>2025-01-02</td>
-                            <td class="text-end">
-                                <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#roleEditModal">编辑</button>
-                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#roleAssignModal">授权</button>
-                                <button class="btn btn-sm btn-outline-danger">删除</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>安全审计员</td>
-                            <td>查看活动日志与合规报告</td>
-                            <td>5</td>
-                            <td>2024-11-15</td>
-                            <td class="text-end">
-                                <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#roleEditModal">编辑</button>
-                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#roleAssignModal">授权</button>
-                                <button class="btn btn-sm btn-outline-danger">删除</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>租户管理员</td>
-                            <td>管理所属租户的应用和资源</td>
-                            <td>18</td>
-                            <td>2024-08-30</td>
-                            <td class="text-end">
-                                <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#roleEditModal">编辑</button>
-                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#roleAssignModal">授权</button>
-                                <button class="btn btn-sm btn-outline-danger">删除</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="row flex-grow-1 g-3">
+                <div class="col-lg-4 d-flex flex-column">
+                    <div class="card flex-grow-1">
+                        <div class="card-header">系统角色</div>
+                        <div class="list-group list-group-flush" id="roleList"></div>
+                    </div>
+                </div>
+                <div class="col-lg-8 d-flex flex-column">
+                    <div class="card flex-grow-1">
+                        <div class="card-header">
+                            <div>
+                                <h6 class="mb-0" id="roleUserTitle">选择角色查看用户</h6>
+                                <small class="text-muted" id="roleDescription">选择左侧角色以加载用户列表。</small>
+                            </div>
+                        </div>
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-hover align-middle mb-0" id="roleUsersTable">
+                                <thead>
+                                    <tr>
+                                        <th>用户姓名</th>
+                                        <th>邮箱</th>
+                                        <th>所属租户</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="placeholder-row">
+                                        <td colspan="3" class="text-center text-muted">等待选择角色...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </template>
@@ -638,7 +615,7 @@
             <div class="modal-content">
                 <form>
                     <div class="modal-header">
-                        <h5 class="modal-title" id="tenantAddModalLabel">添加租户</h5>
+                        <h5 class="modal-title" id="tenantAddModalLabel">新增租户</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
                     </div>
                     <div class="modal-body row g-3">
@@ -649,7 +626,7 @@
                         <div class="col-md-6">
                             <label class="form-label">所属行业</label>
                             <select class="form-select" required>
-                                <option value="">选择行业</option>
+                                <option value="">请选择行业</option>
                                 <option>化工</option>
                                 <option>农业</option>
                                 <option>生物科技</option>
@@ -665,22 +642,19 @@
                             <input type="email" class="form-control" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">初始预算 (/月)</label>
+                            <label class="form-label">月度预算</label>
                             <div class="input-group">
                                 <span class="input-group-text">¥</span>
                                 <input type="number" class="form-control" min="0" step="1000" required>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">启用状态</label>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" checked>
-                                <label class="form-check-label">活跃</label>
-                            </div>
+                            <label class="form-label">成本中心编码</label>
+                            <input type="text" class="form-control" placeholder="例如 NEO-3421">
                         </div>
                         <div class="col-12">
                             <label class="form-label">备注</label>
-                            <textarea class="form-control" rows="3" placeholder="可填写部署需求等"></textarea>
+                            <textarea class="form-control" rows="3" placeholder="可填写重点关注事项"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1165,178 +1139,6 @@ module "sap_s4hana" {
                         <button type="submit" class="btn btn-primary">更新</button>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- 角色管理模态框 -->
-    <div class="modal fade" id="roleAddModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <form>
-                    <div class="modal-header">
-                        <h5 class="modal-title">添加角色</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
-                    </div>
-                    <div class="modal-body row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">角色名称</label>
-                            <input type="text" class="form-control" placeholder="例如 成本分析员" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">角色级别</label>
-                            <select class="form-select">
-                                <option>平台</option>
-                                <option>租户</option>
-                                <option>应用</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">权限范围</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="permTenant">
-                                        <label class="form-check-label" for="permTenant">租户管理</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="permApp">
-                                        <label class="form-check-label" for="permApp">应用管理</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="permCost">
-                                        <label class="form-check-label" for="permCost">成本查看</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">描述</label>
-                            <textarea class="form-control" rows="3"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
-                        <button type="submit" class="btn btn-primary">保存</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="roleEditModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <form>
-                    <div class="modal-header">
-                        <h5 class="modal-title">编辑角色</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">角色名称</label>
-                            <input type="text" class="form-control" value="平台管理员">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">角色描述</label>
-                            <textarea class="form-control" rows="3">拥有全部权限</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">权限</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="roleEditTenant" checked>
-                                        <label class="form-check-label" for="roleEditTenant">租户管理</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="roleEditApp" checked>
-                                        <label class="form-check-label" for="roleEditApp">应用管理</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="roleEditCost" checked>
-                                        <label class="form-check-label" for="roleEditCost">成本查看</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">预警通知</label>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="alertSwitch" checked>
-                                <label class="form-check-label" for="alertSwitch">开启阈值告警通知</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
-                        <button type="submit" class="btn btn-primary">保存</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="roleAssignModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">角色授权用户</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">搜索用户</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="输入用户姓名或邮箱">
-                            <button class="btn btn-outline-secondary" type="button">搜索</button>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>可选用户</h6>
-                            <ul class="list-group">
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    李娜 <small class="text-muted">lina@tenant.cn</small>
-                                    <button class="btn btn-sm btn-outline-primary">添加</button>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    王强 <small class="text-muted">wangqiang@tenant.cn</small>
-                                    <button class="btn btn-sm btn-outline-primary">添加</button>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    陈晨 <small class="text-muted">chenchen@tenant.cn</small>
-                                    <button class="btn btn-sm btn-outline-primary">添加</button>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>已授权用户</h6>
-                            <ul class="list-group">
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    张伟 <small class="text-muted">admin@rd-digital.com</small>
-                                    <button class="btn btn-sm btn-outline-danger">移除</button>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    刘洋 <small class="text-muted">liu.yang@rd-digital.com</small>
-                                    <button class="btn btn-sm btn-outline-danger">移除</button>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
-                    <button type="button" class="btn btn-primary">保存授权</button>
-                </div>
             </div>
         </div>
     </div>
