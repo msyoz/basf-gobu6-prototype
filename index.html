@@ -126,9 +126,9 @@
                 <div class="col-md-4">
                     <div class="card kpi-card">
                         <div class="card-body">
-                            <div class="kpi-label">云资源成本（月）</div>
-                            <div class="kpi-value">¥ 482,560</div>
-                            <div class="kpi-trend text-danger"><i class="bi bi-arrow-up"></i> 较上月 +5%</div>
+                            <div class="kpi-label">活跃云资源</div>
+                            <div class="kpi-value">684</div>
+                            <div class="kpi-trend text-success"><i class="bi bi-arrow-up"></i> 较上月 +5%</div>
                         </div>
                     </div>
                 </div>
@@ -194,10 +194,9 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <h5 class="mb-1">租户列表</h5>
-                    <small class="text-muted">管理租户的生命周期及成本</small>
+                    <small class="text-muted">管理租户的生命周期</small>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-outline-secondary">导出成本报告</button>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tenantAddModal">
                         <i class="bi bi-plus-lg me-1"></i>添加租户
                     </button>
@@ -211,7 +210,6 @@
                             <th>所属行业</th>
                             <th>联系人</th>
                             <th>应用数量</th>
-                            <th>本月成本</th>
                             <th>状态</th>
                             <th class="text-end">操作</th>
                         </tr>
@@ -222,10 +220,8 @@
                             <td>化工</td>
                             <td>赵云</td>
                             <td>14</td>
-                            <td>¥ 86,420</td>
                             <td><span class="badge bg-success">活跃</span></td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#tenantCostModal">成本详情</button>
                                 <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="NeoChem">用户</button>
                                 <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#tenantEditModal">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
@@ -236,10 +232,8 @@
                             <td>农业</td>
                             <td>李雷</td>
                             <td>9</td>
-                            <td>¥ 52,780</td>
                             <td><span class="badge bg-success">活跃</span></td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#tenantCostModal">成本详情</button>
                                 <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="AgriFuture">用户</button>
                                 <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#tenantEditModal">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
@@ -250,10 +244,8 @@
                             <td>生物科技</td>
                             <td>王芳</td>
                             <td>23</td>
-                            <td>¥ 120,990</td>
                             <td><span class="badge bg-warning text-dark">试用</span></td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#tenantCostModal">成本详情</button>
                                 <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="BioTech Labs">用户</button>
                                 <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#tenantEditModal">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
@@ -297,7 +289,7 @@
                                     <th>环境</th>
                                     <th>模板</th>
                                     <th>部署状态</th>
-                                    <th>成本 / 月</th>
+                                    <th>预估成本</th>
                                     <th class="text-end">操作</th>
                                 </tr>
                             </thead>
@@ -307,9 +299,8 @@
                                     <td>生产</td>
                                     <td>SAP S/4HANA</td>
                                     <td><span class="badge bg-success">运行中</span></td>
-                                    <td>¥ 38,200</td>
+                                    <td>--</td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#appCostModal">成本</button>
                                         <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#appEditModal">编辑</button>
                                         <button class="btn btn-sm btn-outline-danger">删除</button>
                                     </td>
@@ -319,9 +310,8 @@
                                     <td>测试</td>
                                     <td>AI Pipeline</td>
                                     <td><span class="badge bg-warning text-dark">部署中</span></td>
-                                    <td>¥ 22,640</td>
+                                    <td>--</td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#appCostModal">成本</button>
                                         <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#appEditModal">编辑</button>
                                         <button class="btn btn-sm btn-outline-danger">删除</button>
                                     </td>
@@ -333,7 +323,6 @@
                                     <td><span class="badge bg-info text-dark" data-role="deployment-status">待批准</span></td>
                                     <td data-role="app-cost">预估 ¥ 18,900</td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#appCostModal">成本</button>
                                         <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#appEditModal">编辑</button>
                                         <button class="btn btn-sm btn-outline-success me-2" data-action="approve-app">批准</button>
                                         <button class="btn btn-sm btn-outline-danger">删除</button>
@@ -344,9 +333,8 @@
                                     <td>生产</td>
                                     <td>Lab Automation</td>
                                     <td><span class="badge bg-success">运行中</span></td>
-                                    <td>¥ 41,870</td>
+                                    <td>--</td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#appCostModal">成本</button>
                                         <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#appEditModal">编辑</button>
                                         <button class="btn btn-sm btn-outline-danger">删除</button>
                                     </td>
@@ -364,7 +352,6 @@
                             </div>
                             <div class="btn-group btn-group-sm">
                                 <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resourceActivityModal">活动日志</button>
-                                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resourceCostModal">成本</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -374,7 +361,7 @@
                                         <th>资源名称</th>
                                         <th>类型</th>
                                         <th>运行状态</th>
-                                        <th>成本 / 月</th>
+                                        <th>预估成本</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -417,7 +404,7 @@
                             <th>区域</th>
                             <th>运行状态</th>
                             <th>上次活动</th>
-                            <th>成本 / 月</th>
+                            <th>预估成本</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -428,7 +415,7 @@
                             <td>China North 3</td>
                             <td><span class="badge bg-success">运行</span></td>
                             <td>12 分钟前</td>
-                            <td>¥ 8,240</td>
+                            <td>--</td>
                         </tr>
                         <tr>
                             <td>ds-ai-data-lake</td>
@@ -437,7 +424,7 @@
                             <td>China East 2</td>
                             <td><span class="badge bg-warning text-dark">警告</span></td>
                             <td>45 分钟前</td>
-                            <td>¥ 4,560</td>
+                            <td>--</td>
                         </tr>
                         <tr>
                             <td>func-lims-automation</td>
@@ -446,7 +433,7 @@
                             <td>China East 3</td>
                             <td><span class="badge bg-success">运行</span></td>
                             <td>6 分钟前</td>
-                            <td>¥ 6,120</td>
+                            <td>--</td>
                         </tr>
                     </tbody>
                 </table>
@@ -660,7 +647,7 @@
                         <div class="col-md-6">
                             <label class="form-label">月度预算</label>
                             <div class="input-group">
-                                <span class="input-group-text">¥</span>
+                                <span class="input-group-text">CNY</span>
                                 <input type="number" class="form-control" min="0" step="1000" required>
                             </div>
                         </div>
@@ -715,7 +702,7 @@
                         <div class="col-md-6">
                             <label class="form-label">月度预算</label>
                             <div class="input-group">
-                                <span class="input-group-text">¥</span>
+                                <span class="input-group-text">CNY</span>
                                 <input type="number" class="form-control" value="100000" step="1000" required>
                             </div>
                         </div>
@@ -733,76 +720,6 @@
                         <button type="submit" class="btn btn-primary">保存</button>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="tenantCostModal" tabindex="-1" aria-labelledby="tenantCostModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="tenantCostModalLabel">租户成本详情</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="card bg-light border-0">
-                                <div class="card-body">
-                                    <div class="text-muted">本月累计成本</div>
-                                    <div class="fs-4 fw-semibold">¥ 86,420</div>
-                                    <div class="text-success small">较上月下降 3%</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card bg-light border-0">
-                                <div class="card-body">
-                                    <div class="text-muted">预算使用</div>
-                                    <div class="fs-4 fw-semibold">86%</div>
-                                    <div class="small">预算: ¥ 100,000</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <hr>
-                    <h6 class="mb-3">按应用分布</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead>
-                                <tr>
-                                    <th>应用</th>
-                                    <th>环境</th>
-                                    <th>本月成本</th>
-                                    <th>趋势</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>NeoChem ERP</td>
-                                    <td>生产</td>
-                                    <td>¥ 38,200</td>
-                                    <td><span class="text-success"><i class="bi bi-arrow-down"></i> 2%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>NeoChem Analytics</td>
-                                    <td>测试</td>
-                                    <td>¥ 21,560</td>
-                                    <td><span class="text-danger"><i class="bi bi-arrow-up"></i> 6%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>NeoChem R&D Lab</td>
-                                    <td>生产</td>
-                                    <td>¥ 26,660</td>
-                                    <td><span class="text-warning"><i class="bi bi-dash"></i> 0%</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
-                </div>
             </div>
         </div>
     </div>
@@ -985,87 +902,6 @@ module "sap_s4hana" {
         </div>
     </div>
 
-    <div class="modal fade" id="appCostModal" tabindex="-1" aria-labelledby="appCostModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="appCostModalLabel">应用成本分析</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4">
-                            <div class="card bg-light border-0">
-                                <div class="card-body">
-                                    <div class="text-muted">本月成本</div>
-                                    <div class="fs-4 fw-semibold">¥ 38,200</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card bg-light border-0">
-                                <div class="card-body">
-                                    <div class="text-muted">上月成本</div>
-                                    <div class="fs-4 fw-semibold">¥ 39,520</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card bg-light border-0">
-                                <div class="card-body">
-                                    <div class="text-muted">资源数量</div>
-                                    <div class="fs-4 fw-semibold">42</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <h6 class="mb-3">按资源类型分布</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead>
-                                <tr>
-                                    <th>资源类型</th>
-                                    <th>数量</th>
-                                    <th>成本占比</th>
-                                    <th>同比</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>虚拟机</td>
-                                    <td>18</td>
-                                    <td>45%</td>
-                                    <td><span class="text-danger"><i class="bi bi-arrow-up"></i> 6%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>数据库</td>
-                                    <td>9</td>
-                                    <td>28%</td>
-                                    <td><span class="text-success"><i class="bi bi-arrow-down"></i> 3%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>存储账户</td>
-                                    <td>6</td>
-                                    <td>15%</td>
-                                    <td><span class="text-warning"><i class="bi bi-dash"></i> 0%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>网络</td>
-                                    <td>9</td>
-                                    <td>12%</td>
-                                    <td><span class="text-success"><i class="bi bi-arrow-down"></i> 2%</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal fade" id="resourceActivityModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
@@ -1087,55 +923,6 @@ module "sap_s4hana" {
                             <div class="fw-semibold">函数 func-lims-automation 发布新版本</div>
                             <small class="text-muted">2025-10-08 15:48 - 由 CI/CD</small>
                         </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="resourceCostModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">资源成本概览</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="placeholder-chart mb-3">成本堆叠柱状图占位</div>
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead>
-                                <tr>
-                                    <th>资源</th>
-                                    <th>类型</th>
-                                    <th>月成本</th>
-                                    <th>同比</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>vm-erp-prod-01</td>
-                                    <td>虚拟机</td>
-                                    <td>¥ 3,120</td>
-                                    <td><span class="text-success"><i class="bi bi-arrow-down"></i> 1%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>db-erp-prod-02</td>
-                                    <td>数据库</td>
-                                    <td>¥ 5,680</td>
-                                    <td><span class="text-danger"><i class="bi bi-arrow-up"></i> 4%</span></td>
-                                </tr>
-                                <tr>
-                                    <td>storage-erp-archive</td>
-                                    <td>存储</td>
-                                    <td>¥ 1,240</td>
-                                    <td><span class="text-warning"><i class="bi bi-dash"></i> 0%</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
                 <div class="modal-footer">

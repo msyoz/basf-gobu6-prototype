@@ -266,7 +266,7 @@ function renderResourceTable(tbody, resources = [], options = {}) {
     const resourceRows = resources
         .map(resource => {
             const statusClass = statusClassMap[resource.status] || 'bg-secondary';
-            const cost = resource.cost || '--';
+            const cost = isPendingApproval ? (resource.cost || '--') : '--';
             return `
             <tr>
                 <td>${resource.name}</td>
