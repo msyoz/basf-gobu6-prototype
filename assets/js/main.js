@@ -85,18 +85,18 @@ const roleAssignments = {
     }
 };
 
-const tenantUserRoles = ['租户拥有者', '租户使用者'];
+const tenantUserRoles = ['租户所有者', '租户使用者'];
 const tenantUsersDirectory = {
     NeoChem: [
-        { name: 'Chen Yu', email: 'chenyu@neochem.cn', role: '租户拥有者' },
+        { name: 'Chen Yu', email: 'chenyu@neochem.cn', role: '租户所有者' },
         { name: 'Sun Tao', email: 'suntao@neochem.cn', role: '租户使用者' }
     ],
     AgriFuture: [
-        { name: 'Gao Ling', email: 'gaoling@agrifuture.cn', role: '租户拥有者' },
+        { name: 'Gao Ling', email: 'gaoling@agrifuture.cn', role: '租户所有者' },
         { name: 'Ma Rui', email: 'marui@agrifuture.cn', role: '租户使用者' }
     ],
     'BioTech Labs': [
-        { name: 'Luo Bin', email: 'luobin@biocloud.cn', role: '租户拥有者' },
+        { name: 'Luo Bin', email: 'luobin@biocloud.cn', role: '租户所有者' },
         { name: 'He Na', email: 'hena@biocloud.cn', role: '租户使用者' }
     ]
 };
