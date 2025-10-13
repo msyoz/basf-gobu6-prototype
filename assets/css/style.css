@@ -298,6 +298,22 @@ body {
     border-bottom: 1px dashed rgba(31, 42, 68, 0.1);
 }
 
+.approval-steps .list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 1px solid rgba(31, 42, 68, 0.06);
+}
+
+.approval-steps .list-group-item.active {
+    border-left: 4px solid #2f57d3;
+    background: rgba(47, 87, 211, 0.04);
+}
+
+.approval-steps .list-group-item .small {
+    color: #657091;
+}
+
 @media (max-width: 991px) {
     .sidebar {
         position: fixed;

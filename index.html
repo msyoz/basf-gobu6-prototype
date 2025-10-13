@@ -316,7 +316,7 @@
                                         <button class="btn btn-sm btn-outline-danger">删除</button>
                                     </td>
                                 </tr>
-                                <tr data-app="NeoChem ESG Portal" data-status="pending">
+                                <tr data-app="NeoChem ESG Portal" data-status="pending" data-tenant="NeoChem">
                                     <td class="app-link">NeoChem ESG Portal</td>
                                     <td>预生产</td>
                                     <td>ESG Landing Zone</td>
@@ -898,6 +898,33 @@ module "sap_s4hana" {
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="appApprovalProgressModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">应用审批进度</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <div class="fw-semibold">应用：<span data-role="approval-app-name">--</span></div>
+                        <div class="text-muted small" data-role="approval-tenant-name"></div>
+                    </div>
+                    <div class="alert alert-light border small" data-role="approval-guidance">
+                        审批将按顺序通知每级负责人，请等待进度更新。
+                    </div>
+                    <ul class="list-group approval-steps" data-role="approval-steps"></ul>
+                </div>
+                <div class="modal-footer">
+                    <div class="me-auto small text-muted" data-role="approval-feedback"></div>
+                    <button type="button" class="btn btn-success" data-action="approval-confirm">批准</button>
+                    <button type="button" class="btn btn-outline-danger" data-action="approval-reject">拒绝</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
             </div>
         </div>
     </div>

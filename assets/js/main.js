@@ -11,6 +11,360 @@ const sidebarToggle = document.getElementById('sidebarToggle');
 const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
 const applicationTenantSelectorTemplateId = 'applicationTenantSelector';
 
+const APPROVAL_STATUS_VARIANTS = {
+    pending: { label: '待处理', className: 'bg-secondary' },
+    inProgress: { label: '审批中...', className: 'bg-info text-dark' },
+    approved: { label: '已批准', className: 'bg-success' },
+    rejected: { label: '已拒绝', className: 'bg-danger' }
+};
+
+const APPROVAL_STEP_DELAY = 900;
+
+const approvalState = {
+    currentRow: null,
+    flow: [],
+    stepElements: [],
+    timers: [],
+    status: 'idle'
+};
+
+let approvalModalElements = null;
+let approvalModalInstance = null;
+
+function initializeApprovalModal() {
+    if (approvalModalElements) return;
+    const modalElement = document.getElementById('appApprovalProgressModal');
+    if (!modalElement || typeof bootstrap === 'undefined') return;
+
+    approvalModalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+    approvalModalElements = {
+        modal: modalElement,
+        appName: modalElement.querySelector('[data-role="approval-app-name"]'),
+        tenantName: modalElement.querySelector('[data-role="approval-tenant-name"]'),
+        stepsContainer: modalElement.querySelector('[data-role="approval-steps"]'),
+        feedback: modalElement.querySelector('[data-role="approval-feedback"]'),
+        confirmBtn: modalElement.querySelector('[data-action="approval-confirm"]'),
+        rejectBtn: modalElement.querySelector('[data-action="approval-reject"]')
+    };
+
+    approvalModalElements.confirmBtn?.addEventListener('click', startApprovalFlow);
+    approvalModalElements.rejectBtn?.addEventListener('click', handleApprovalReject);
+    modalElement.addEventListener('hidden.bs.modal', resetApprovalModal);
+}
+
+function resolveApprovalFlow(tenantName = '') {
+    const tenantOwner = getTenantUsers(tenantName).find(user => user.role === '租户所有者') || {};
+    const appAdmins = (roleAssignments['App Admins']?.users || []);
+    const platformAdmins = (roleAssignments['Platform Admins']?.users || []);
+
+    const appAdmin = appAdmins.find(user => user.tenant === tenantName) || appAdmins[0] || {};
+    const platformAdmin = platformAdmins[0] || {};
+
+    return [
+        {
+            level: 1,
+            role: '租户所有者',
+            title: '1级 审批 - 租户所有者',
+            contactName: tenantOwner.name || '未配置',
+            contactEmail: tenantOwner.email || '--'
+        },
+        {
+            level: 2,
+            role: '应用管理员',
+            title: '2级 审批 - 应用管理员',
+            contactName: appAdmin.name || '未配置',
+            contactEmail: appAdmin.email || '--'
+        },
+        {
+            level: 3,
+            role: '平台管理员',
+            title: '3级 审批 - 平台管理员',
+            contactName: platformAdmin.name || '未配置',
+            contactEmail: platformAdmin.email || '--'
+        }
+    ];
+}
+
+function renderApprovalSteps(container, flow = []) {
+    if (!container) return;
+    container.innerHTML = '';
+    approvalState.stepElements = [];
+
+    flow.forEach(step => {
+        const item = document.createElement('li');
+        item.className = 'list-group-item';
+        item.classList.add('approval-step');
+        item.dataset.level = step.level;
+
+    const detail = document.createElement('div');
+    detail.className = 'me-3';
+    detail.classList.add('flex-grow-1');
+
+        const title = document.createElement('div');
+        title.className = 'fw-semibold';
+        title.textContent = step.title || `${step.level}级 审批 - ${step.role}`;
+
+        const info = document.createElement('div');
+        info.className = 'small';
+        info.textContent = step.contactName && step.contactEmail ? `${step.contactName} · ${step.contactEmail}` : '未配置审批人';
+
+        detail.appendChild(title);
+        detail.appendChild(info);
+
+        const badge = document.createElement('span');
+        badge.className = `badge rounded-pill ${APPROVAL_STATUS_VARIANTS.pending.className}`;
+        badge.textContent = APPROVAL_STATUS_VARIANTS.pending.label;
+
+        item.appendChild(detail);
+        item.appendChild(badge);
+        container.appendChild(item);
+
+        approvalState.stepElements.push({
+            level: step.level,
+            element: item,
+            badge
+        });
+    });
+}
+
+function setStepStatus(level, statusKey) {
+    const entry = approvalState.stepElements.find(step => Number(step.level) === Number(level));
+    if (!entry) return;
+
+    const variant = APPROVAL_STATUS_VARIANTS[statusKey] || APPROVAL_STATUS_VARIANTS.pending;
+    entry.badge.className = `badge rounded-pill ${variant.className}`;
+    entry.badge.textContent = variant.label;
+
+    if (statusKey === 'inProgress') {
+        entry.element.classList.add('active');
+    } else {
+        entry.element.classList.remove('active');
+    }
+}
+
+function clearApprovalTimers() {
+    approvalState.timers.forEach(timerId => clearTimeout(timerId));
+    approvalState.timers = [];
+}
+
+function openApprovalModal(row) {
+    initializeApprovalModal();
+    if (!approvalModalElements || !approvalModalInstance) return;
+
+    approvalState.currentRow = row;
+    const tenantName = row.dataset.tenant || '';
+    const appName = row.dataset.app || '应用';
+
+    if (approvalModalElements.appName) {
+        approvalModalElements.appName.textContent = appName;
+    }
+    if (approvalModalElements.tenantName) {
+        approvalModalElements.tenantName.textContent = tenantName ? `租户：${tenantName}` : '';
+    }
+
+    approvalState.flow = resolveApprovalFlow(tenantName);
+    renderApprovalSteps(approvalModalElements.stepsContainer, approvalState.flow);
+
+    approvalState.status = row.dataset.status || 'pending';
+
+    if (approvalModalElements.feedback) {
+        approvalModalElements.feedback.textContent = '发起审批后将依次完成每级审批。';
+    }
+
+    if (approvalModalElements.confirmBtn) {
+        approvalModalElements.confirmBtn.disabled = false;
+        approvalModalElements.confirmBtn.textContent = '批准';
+    }
+
+    if (approvalModalElements.rejectBtn) {
+        approvalModalElements.rejectBtn.disabled = false;
+        approvalModalElements.rejectBtn.textContent = '拒绝';
+    }
+
+    if (approvalState.status === 'approved') {
+        approvalState.flow.forEach(step => setStepStatus(step.level, 'approved'));
+        if (approvalModalElements.feedback) {
+            approvalModalElements.feedback.textContent = '该申请已完成审批。';
+        }
+        if (approvalModalElements.confirmBtn) {
+            approvalModalElements.confirmBtn.disabled = true;
+            approvalModalElements.confirmBtn.textContent = '已批准';
+        }
+        if (approvalModalElements.rejectBtn) {
+            approvalModalElements.rejectBtn.disabled = true;
+        }
+    } else if (approvalState.status === 'rejected') {
+        if (approvalState.flow[0]) {
+            setStepStatus(approvalState.flow[0].level, 'rejected');
+        }
+        if (approvalModalElements.feedback) {
+            approvalModalElements.feedback.textContent = '该申请已被拒绝。';
+        }
+        if (approvalModalElements.confirmBtn) {
+            approvalModalElements.confirmBtn.disabled = true;
+            approvalModalElements.confirmBtn.textContent = '已拒绝';
+        }
+        if (approvalModalElements.rejectBtn) {
+            approvalModalElements.rejectBtn.disabled = true;
+        }
+    }
+
+    approvalModalInstance.show();
+}
+
+function startApprovalFlow() {
+    if (!approvalModalElements || !approvalState.currentRow) return;
+    if (approvalState.status === 'processing' || approvalState.status === 'approved') return;
+
+    clearApprovalTimers();
+
+    approvalState.status = 'processing';
+    approvalState.flow.forEach((step, index) => {
+        setStepStatus(step.level, index === 0 ? 'inProgress' : 'pending');
+    });
+
+    if (approvalModalElements.feedback) {
+        approvalModalElements.feedback.textContent = '正在推进审批流程...';
+    }
+
+    if (approvalModalElements.confirmBtn) {
+        approvalModalElements.confirmBtn.disabled = true;
+        approvalModalElements.confirmBtn.textContent = '审批中...';
+    }
+
+    if (approvalModalElements.rejectBtn) {
+        approvalModalElements.rejectBtn.disabled = true;
+    }
+
+    approvalState.flow.forEach((step, index) => {
+        const timerId = setTimeout(() => {
+            setStepStatus(step.level, 'approved');
+            if (index < approvalState.flow.length - 1) {
+                const nextStep = approvalState.flow[index + 1];
+                setStepStatus(nextStep.level, 'inProgress');
+            } else {
+                finalizeApprovalSuccess();
+            }
+        }, (index + 1) * APPROVAL_STEP_DELAY);
+
+        approvalState.timers.push(timerId);
+    });
+}
+
+function finalizeApprovalSuccess() {
+    approvalState.status = 'approved';
+    if (approvalModalElements.feedback) {
+        approvalModalElements.feedback.textContent = '审批完成，系统已记录批准结果。';
+    }
+    if (approvalModalElements.confirmBtn) {
+        approvalModalElements.confirmBtn.disabled = true;
+        approvalModalElements.confirmBtn.textContent = '已批准';
+    }
+    if (approvalModalElements.rejectBtn) {
+        approvalModalElements.rejectBtn.disabled = true;
+    }
+    updateApplicationRowStatus('approved');
+}
+
+function handleApprovalReject() {
+    if (!approvalModalElements || !approvalState.currentRow) return;
+
+    clearApprovalTimers();
+    approvalState.status = 'rejected';
+
+    approvalState.flow.forEach((step, index) => {
+        const statusKey = index === 0 ? 'rejected' : 'pending';
+        setStepStatus(step.level, statusKey);
+    });
+
+    if (approvalModalElements.feedback) {
+        approvalModalElements.feedback.textContent = '已拒绝该申请，资源创建不会继续。';
+    }
+    if (approvalModalElements.confirmBtn) {
+        approvalModalElements.confirmBtn.disabled = true;
+        approvalModalElements.confirmBtn.textContent = '已拒绝';
+    }
+    if (approvalModalElements.rejectBtn) {
+        approvalModalElements.rejectBtn.disabled = true;
+    }
+
+    updateApplicationRowStatus('rejected');
+}
+
+function updateApplicationRowStatus(status) {
+    const row = approvalState.currentRow;
+    if (!row) return;
+
+    row.dataset.status = status;
+
+    const statusBadge = row.querySelector('[data-role="deployment-status"]');
+    if (statusBadge) {
+        if (status === 'approved') {
+            statusBadge.className = 'badge bg-success';
+            statusBadge.textContent = '已批准';
+        } else if (status === 'rejected') {
+            statusBadge.className = 'badge bg-danger';
+            statusBadge.textContent = '已拒绝';
+        } else {
+            statusBadge.className = 'badge bg-info text-dark';
+            statusBadge.textContent = '待批准';
+        }
+    }
+
+    const approveBtn = row.querySelector('[data-action="approve-app"]');
+    if (approveBtn) {
+        if (status === 'approved') {
+            approveBtn.textContent = '已批准';
+            approveBtn.classList.remove('btn-outline-success');
+            approveBtn.classList.remove('btn-outline-secondary');
+            approveBtn.classList.add('btn-success');
+            approveBtn.disabled = true;
+        } else if (status === 'rejected') {
+            approveBtn.textContent = '已拒绝';
+            approveBtn.classList.remove('btn-outline-success');
+            approveBtn.classList.remove('btn-success');
+            approveBtn.classList.add('btn-outline-secondary');
+            approveBtn.disabled = true;
+        } else {
+            approveBtn.textContent = '批准';
+            approveBtn.classList.remove('btn-success', 'btn-outline-secondary');
+            approveBtn.classList.add('btn-outline-success');
+            approveBtn.disabled = false;
+        }
+    }
+}
+
+function resetApprovalModal() {
+    clearApprovalTimers();
+    approvalState.currentRow = null;
+    approvalState.flow = [];
+    approvalState.stepElements = [];
+    approvalState.status = 'idle';
+
+    if (!approvalModalElements) return;
+
+    if (approvalModalElements.stepsContainer) {
+        approvalModalElements.stepsContainer.innerHTML = '';
+    }
+    if (approvalModalElements.feedback) {
+        approvalModalElements.feedback.textContent = '';
+    }
+    if (approvalModalElements.appName) {
+        approvalModalElements.appName.textContent = '--';
+    }
+    if (approvalModalElements.tenantName) {
+        approvalModalElements.tenantName.textContent = '';
+    }
+    if (approvalModalElements.confirmBtn) {
+        approvalModalElements.confirmBtn.disabled = false;
+        approvalModalElements.confirmBtn.textContent = '批准';
+    }
+    if (approvalModalElements.rejectBtn) {
+        approvalModalElements.rejectBtn.disabled = false;
+        approvalModalElements.rejectBtn.textContent = '拒绝';
+    }
+}
+
 const appResources = {
     'NeoChem ERP': [
         { name: 'vm-erp-prod-01', type: '虚拟机', status: '运行', cost: '¥ 3,120' },
@@ -174,6 +528,8 @@ function openTab(page, title, payload = {}) {
 }
 
 function initializeApplicationsTab(container, payload) {
+    initializeApprovalModal();
+
     const tenantSelector = container.querySelector(`#${applicationTenantSelectorTemplateId}`);
     const appRows = container.querySelectorAll('#applicationsTable tbody tr');
     const resourceTableBody = container.querySelector('#resourceTable tbody');
@@ -191,7 +547,13 @@ function initializeApplicationsTab(container, payload) {
             if (event.target.closest('button')) return;
             const appName = row.dataset.app;
             if (!appName) return;
-            const isPendingApproval = row.dataset.status === 'pending';
+            const status = row.dataset.status || '';
+            if (status === 'rejected') {
+                resourceLabel.textContent = `${appName} 的资源`;
+                resourceTableBody.innerHTML = '<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">审批未通过，资源未创建。</td></tr>';
+                return;
+            }
+            const isPendingApproval = status === 'pending';
             resourceLabel.textContent = isPendingApproval ? `${appName} 的拟创建资源` : `${appName} 的资源`;
             renderResourceTable(resourceTableBody, appResources[appName], { isPendingApproval });
         });
@@ -201,10 +563,7 @@ function initializeApplicationsTab(container, payload) {
             approveBtn.addEventListener('click', event => {
                 event.preventDefault();
                 event.stopPropagation();
-                const appName = row.dataset.app || '该应用';
-                if (confirm(`确认批准"${appName}"的创建申请？`)) {
-                    alert('已提交批准，系统将开始部署流程。');
-                }
+                openApprovalModal(row);
             });
         }
     });
