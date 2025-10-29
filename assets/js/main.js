@@ -813,6 +813,110 @@ function initTenantUsersModal() {
     });
 }
 
+function initTenantFormModal() {
+    const modalElement = document.getElementById('tenantFormModal');
+    if (!modalElement || typeof bootstrap === 'undefined') return;
+
+    const modalTitle = modalElement.querySelector('[data-role="tenant-modal-title"]');
+    const modalHint = modalElement.querySelector('[data-role="tenant-modal-hint"]');
+    const feedback = modalElement.querySelector('[data-role="tenant-modal-feedback"]');
+    const submitBtn = modalElement.querySelector('[data-role="tenant-modal-submit"]');
+    const form = modalElement.querySelector('#tenantForm');
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+    if (!form) return;
+
+    const fields = {
+        code: form.querySelector('#tenantCode'),
+        name: form.querySelector('#tenantName'),
+        od: form.querySelector('#tenantOd'),
+        owner: form.querySelector('#tenantOwner'),
+        description: form.querySelector('#tenantDescription')
+    };
+
+    const setFeedback = (message, variant) => {
+        if (!feedback) return;
+        feedback.textContent = message;
+        feedback.classList.toggle('d-none', !message);
+        feedback.classList.toggle('alert-success', variant === 'success');
+        feedback.classList.toggle('alert-warning', variant === 'warning');
+    };
+
+    const enableAllFields = () => {
+        Object.values(fields).forEach(input => {
+            if (input) input.disabled = false;
+        });
+    };
+
+    const disableImmutableFields = () => {
+        ['code', 'od', 'owner'].forEach(key => {
+            if (fields[key]) fields[key].disabled = true;
+        });
+    };
+
+    modalElement.addEventListener('show.bs.modal', event => {
+        const trigger = event.relatedTarget;
+        const mode = trigger?.dataset.mode === 'edit' ? 'edit' : 'create';
+
+        form.reset();
+        enableAllFields();
+        setFeedback('');
+
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = mode === 'edit' ? '保存' : '创建';
+        }
+
+        if (modalTitle) {
+            modalTitle.textContent = mode === 'edit' ? '编辑租户' : '新增租户';
+        }
+
+        if (modalHint) {
+            modalHint.textContent = mode === 'edit' ? '仅支持更新租户名称与描述。' : '请填写完整租户信息以创建新租户。';
+            modalHint.classList.toggle('alert-warning', mode === 'edit');
+            modalHint.classList.toggle('alert-info', mode !== 'edit');
+        }
+
+        if (mode === 'edit') {
+            const sourceRow = trigger?.closest('tr');
+            const dataset = sourceRow?.dataset || {};
+
+            if (fields.code) fields.code.value = dataset.tenantCode || '';
+            if (fields.name) fields.name.value = dataset.tenantName || '';
+            if (fields.od) fields.od.value = dataset.tenantOd || '';
+            if (fields.owner) fields.owner.value = dataset.tenantOwner || '';
+            if (fields.description) fields.description.value = dataset.tenantDescription || '';
+
+            disableImmutableFields();
+        }
+
+        form.dataset.mode = mode;
+    });
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+
+        const mode = form.dataset.mode === 'edit' ? 'edit' : 'create';
+        const formData = new FormData(form);
+        const name = (formData.get('name') || '').trim();
+
+        if (!name) {
+            setFeedback('请填写租户名称。', 'warning');
+            return;
+        }
+
+        setFeedback(mode === 'edit' ? '已保存租户信息（示例数据）。' : '已创建租户（示例数据）。', 'success');
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = mode === 'edit' ? '已保存' : '已创建';
+        }
+
+        // Close the modal after a short pause so users can read the feedback.
+        setTimeout(() => modalInstance.hide(), 600);
+    });
+}
+
 function handleTabClose(event) {
     if (!event.target.closest('.tab-close')) return;
     const button = event.target.closest('[data-bs-target]');
@@ -962,6 +1066,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDelegates();
     initChat();
     initSidebar();
+    initTenantFormModal();
     initTenantUsersModal();
     bootstrapDefaultTabs();
 });
