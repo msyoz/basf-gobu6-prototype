@@ -85,12 +85,12 @@
 
     <div class="chat-panel shadow" id="chatPanel">
         <div class="chat-header d-flex justify-content-between align-items-center">
-            <div><i class="bi bi-question-circle me-2"></i>知识助手 QnA</div>
+            <div><i class="bi bi-question-circle me-2"></i>RD Digital Platform Copilot</div>
             <button class="btn btn-sm btn-outline-secondary" id="chatClose">关闭</button>
         </div>
         <div class="chat-body" id="chatMessages">
             <div class="chat-message bot">
-                <div class="name">知识助手</div>
+                <div class="name">RD Digital Platform Copilot</div>
                 <div class="bubble">您好，我可以帮助解答平台相关问题。</div>
             </div>
         </div>
@@ -206,47 +206,51 @@
                 <table class="table table-hover align-middle">
                     <thead>
                         <tr>
+                            <th>租户代号</th>
                             <th>租户名称</th>
-                            <th>所属行业</th>
-                            <th>联系人</th>
+                            <th>所属OD</th>
+                            <th>所有者</th>
                             <th>应用数量</th>
-                            <th>状态</th>
+                            <th>用户数量</th>
                             <th class="text-end">操作</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="tenant-link" data-target-page="applications" data-tenant="NeoChem">NeoChem</td>
-                            <td>化工</td>
-                            <td>赵云</td>
-                            <td>14</td>
-                            <td><span class="badge bg-success">活跃</span></td>
+                            <td class="tenant-link" data-target-page="applications" data-tenant="RG-default">RG-default</td>
+                            <td>Group Research Default</td>
+                            <td>RG</td>
+                            <td>张三</td>
+                            <td>5</td>
+                            <td>20</td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="NeoChem">用户</button>
+                                <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="RG-default">用户</button>
                                 <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#tenantEditModal">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
                         </tr>
                         <tr>
-                            <td class="tenant-link" data-target-page="applications" data-tenant="AgriFuture">AgriFuture</td>
-                            <td>农业</td>
+                            <td class="tenant-link" data-target-page="applications" data-tenant="EV-default">EV-default</td>
+                            <td>Performance Chemicals Default</td>
+                            <td>EV</td>
                             <td>李雷</td>
                             <td>9</td>
-                            <td><span class="badge bg-success">活跃</span></td>
+                            <td>36</td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="AgriFuture">用户</button>
+                                <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="EV-default">用户</button>
                                 <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#tenantEditModal">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
                         </tr>
                         <tr>
-                            <td class="tenant-link" data-target-page="applications" data-tenant="BioTech Labs">BioTech Labs</td>
-                            <td>生物科技</td>
+                            <td class="tenant-link" data-target-page="applications" data-tenant="ED-default">ED-default</td>
+                            <td>Dispersions and Resins Default</td>
+                            <td>ED</td>
                             <td>王芳</td>
-                            <td>23</td>
-                            <td><span class="badge bg-warning text-dark">试用</span></td>
+                            <td>8</td>
+                            <td>32</td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="BioTech Labs">用户</button>
+                                <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#tenantUsersModal" data-tenant="ED-default">用户</button>
                                 <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#tenantEditModal">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
@@ -269,9 +273,9 @@
                         <span class="input-group-text">租户</span>
                         <select class="form-select" id="applicationTenantSelector">
                             <option value="">请选择租户...</option>
-                            <option>NeoChem</option>
-                            <option>AgriFuture</option>
-                            <option>BioTech Labs</option>
+                            <option>RG-default</option>
+                            <option>EV-default</option>
+                            <option>ED-default</option>
                         </select>
                     </div>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#appAddModal">
@@ -294,8 +298,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr data-app="NeoChem ERP">
-                                    <td class="app-link">NeoChem ERP</td>
+                                <tr data-app="RG-default ERP">
+                                    <td class="app-link">RG-default ERP</td>
                                     <td>生产</td>
                                     <td>SAP S/4HANA</td>
                                     <td><span class="badge bg-success">运行中</span></td>
@@ -316,8 +320,8 @@
                                         <button class="btn btn-sm btn-outline-danger">删除</button>
                                     </td>
                                 </tr>
-                                <tr data-app="NeoChem ESG Portal" data-status="pending" data-tenant="NeoChem">
-                                    <td class="app-link">NeoChem ESG Portal</td>
+                                <tr data-app="RG-default ESG Portal" data-status="pending" data-tenant="RG-default">
+                                    <td class="app-link">RG-default ESG Portal</td>
                                     <td>预生产</td>
                                     <td>ESG Landing Zone</td>
                                     <td><span class="badge bg-info text-dark" data-role="deployment-status">待批准</span></td>
@@ -387,9 +391,9 @@
                 <div class="d-flex gap-2">
                     <select class="form-select form-select-sm w-auto">
                         <option>全部租户</option>
-                        <option>NeoChem</option>
-                        <option>AgriFuture</option>
-                        <option>BioTech Labs</option>
+                        <option>RG-default</option>
+                        <option>EV-default</option>
+                        <option>ED-default</option>
                     </select>
                     <button class="btn btn-outline-secondary btn-sm">导出</button>
                 </div>
@@ -410,7 +414,7 @@
                     <tbody>
                         <tr>
                             <td>vm-erp-prod-01</td>
-                            <td>NeoChem ERP</td>
+                            <td>RG-default ERP</td>
                             <td>虚拟机</td>
                             <td>China North 3</td>
                             <td><span class="badge bg-success">运行</span></td>
@@ -624,7 +628,7 @@
                     <div class="modal-body row g-3">
                         <div class="col-md-6">
                             <label class="form-label">租户名称</label>
-                            <input type="text" class="form-control" placeholder="例如 NeoChem" required>
+                            <input type="text" class="form-control" placeholder="例如 RG-default" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">所属行业</label>
@@ -680,7 +684,7 @@
                     <div class="modal-body row g-3">
                         <div class="col-md-6">
                             <label class="form-label">租户名称</label>
-                            <input type="text" class="form-control" value="NeoChem" required>
+                            <input type="text" class="form-control" value="RG-default" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">所属行业</label>
@@ -697,7 +701,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">联系人邮箱</label>
-                            <input type="email" class="form-control" value="zhaoyun@neochem.cn" required>
+                            <input type="email" class="form-control" value="zhaoyun@RG-default.cn" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">月度预算</label>
@@ -734,7 +738,7 @@
                 <div class="modal-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
-                            <div class="fw-semibold" id="tenantUsersModalTenant">NeoChem</div>
+                            <div class="fw-semibold" id="tenantUsersModalTenant">RG-default</div>
                             <small class="text-muted">在此管理租户内的成员与角色</small>
                         </div>
                         <span class="badge bg-light text-dark">内置角色：租户所有者 / 租户使用者</span>
@@ -803,9 +807,9 @@
                             <label class="form-label">所属租户</label>
                             <select class="form-select" required>
                                 <option value="">选择租户</option>
-                                <option>NeoChem</option>
-                                <option>AgriFuture</option>
-                                <option>BioTech Labs</option>
+                                <option>RG-default</option>
+                                <option>EV-default</option>
+                                <option>ED-default</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -851,7 +855,7 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label">应用名称</label>
-                                <input type="text" class="form-control" value="NeoChem ERP" required>
+                                <input type="text" class="form-control" value="RG-default ERP" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">环境</label>
@@ -873,7 +877,7 @@
                                 <label class="form-label">Terraform 配置</label>
                                 <textarea class="form-control code-editor" rows="12">
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-neochem-erp-prod"
+  name     = "rg-RG-default-erp-prod"
   location = "China North 3"
 }
 

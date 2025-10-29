@@ -366,7 +366,7 @@ function resetApprovalModal() {
 }
 
 const appResources = {
-    'NeoChem ERP': [
+    'RG-default ERP': [
         { name: 'vm-erp-prod-01', type: '虚拟机', status: '运行', cost: '¥ 3,120' },
         { name: 'db-erp-prod-02', type: '数据库', status: '运行', cost: '¥ 5,680' },
         { name: 'storage-erp-archive', type: '存储', status: '待机', cost: '¥ 1,240' },
@@ -377,8 +377,8 @@ const appResources = {
         { name: 'ds-ai-data-lake', type: 'Data Lake', status: '警告', cost: '¥ 4,560' },
         { name: 'func-ai-event', type: '函数', status: '运行', cost: '¥ 860' }
     ],
-    'NeoChem ESG Portal': [
-        { name: 'rg-neochem-esg', type: '资源组', status: '待创建', cost: '预估 ¥ 0' },
+    'RG-default ESG Portal': [
+        { name: 'rg-RG-default-esg', type: '资源组', status: '待创建', cost: '预估 ¥ 0' },
         { name: 'aks-esg-cluster', type: '容器服务', status: '待创建', cost: '预估 ¥ 9,500' },
         { name: 'db-esg-analytics', type: '数据库', status: '待创建', cost: '预估 ¥ 6,800' },
         { name: 'app-esg-api', type: '应用服务', status: '待创建', cost: '预估 ¥ 2,600' }
@@ -401,16 +401,16 @@ const roleAssignments = {
     'Tenant Admins': {
         description: '租户管理员，具备租户管理的权限',
         users: [
-            { name: 'Zhao Yun', email: 'zhaoyun@neochem.cn', tenant: 'NeoChem' },
-            { name: 'Li Lei', email: 'lilei@agrifuture.cn', tenant: 'AgriFuture' },
-            { name: 'Wang Fang', email: 'wangfang@biocloud.cn', tenant: 'BioTech Labs' }
+            { name: 'Zhao Yun', email: 'zhaoyun@RG-default.cn', tenant: 'RG-default' },
+            { name: 'Li Lei', email: 'lilei@EV-default.cn', tenant: 'EV-default' },
+            { name: 'Wang Fang', email: 'wangfang@biocloud.cn', tenant: 'ED-default' }
         ]
     },
     'App Admins': {
         description: '应用管理员，具备应用管理的权限，可以批准应用的申请',
         users: [
-            { name: 'Liu Yang', email: 'liuyang@apps.cn', tenant: 'NeoChem' },
-            { name: 'Qin Mei', email: 'qinmei@apps.cn', tenant: 'AgriFuture' }
+            { name: 'Liu Yang', email: 'liuyang@apps.cn', tenant: 'RG-default' },
+            { name: 'Qin Mei', email: 'qinmei@apps.cn', tenant: 'EV-default' }
         ]
     },
     'Template Admins': {
@@ -423,33 +423,33 @@ const roleAssignments = {
     'Tenant Owners': {
         description: '租户所有者，可以对所在租户进行完全的管理',
         users: [
-            { name: 'Chen Yu', email: 'chenyu@neochem.cn', tenant: 'NeoChem' },
-            { name: 'Gao Ling', email: 'gaoling@agrifuture.cn', tenant: 'AgriFuture' },
-            { name: 'Luo Bin', email: 'luobin@biocloud.cn', tenant: 'BioTech Labs' }
+            { name: 'Chen Yu', email: 'chenyu@RG-default.cn', tenant: 'RG-default' },
+            { name: 'Gao Ling', email: 'gaoling@EV-default.cn', tenant: 'EV-default' },
+            { name: 'Luo Bin', email: 'luobin@biocloud.cn', tenant: 'ED-default' }
         ]
     },
     'Tenant Users': {
         description: '租户使用者，可以访问所在租户的应用，包括知识库问答',
         users: [
-            { name: 'Sun Tao', email: 'suntao@neochem.cn', tenant: 'NeoChem' },
-            { name: 'Ma Rui', email: 'marui@agrifuture.cn', tenant: 'AgriFuture' },
-            { name: 'He Na', email: 'hena@biocloud.cn', tenant: 'BioTech Labs' },
-            { name: 'Feng Kai', email: 'fengkai@biocloud.cn', tenant: 'BioTech Labs' }
+            { name: 'Sun Tao', email: 'suntao@RG-default.cn', tenant: 'RG-default' },
+            { name: 'Ma Rui', email: 'marui@EV-default.cn', tenant: 'EV-default' },
+            { name: 'He Na', email: 'hena@biocloud.cn', tenant: 'ED-default' },
+            { name: 'Feng Kai', email: 'fengkai@biocloud.cn', tenant: 'ED-default' }
         ]
     }
 };
 
 const tenantUserRoles = ['租户所有者', '租户使用者'];
 const tenantUsersDirectory = {
-    NeoChem: [
-        { name: 'Chen Yu', email: 'chenyu@neochem.cn', role: '租户所有者' },
-        { name: 'Sun Tao', email: 'suntao@neochem.cn', role: '租户使用者' }
+    'RG-default': [
+        { name: 'Chen Yu', email: 'chenyu@RG-default.cn', role: '租户所有者' },
+        { name: 'Sun Tao', email: 'suntao@RG-default.cn', role: '租户使用者' }
     ],
-    AgriFuture: [
-        { name: 'Gao Ling', email: 'gaoling@agrifuture.cn', role: '租户所有者' },
-        { name: 'Ma Rui', email: 'marui@agrifuture.cn', role: '租户使用者' }
+    'EV-default': [
+        { name: 'Gao Ling', email: 'gaoling@EV-default.cn', role: '租户所有者' },
+        { name: 'Ma Rui', email: 'marui@EV-default.cn', role: '租户使用者' }
     ],
-    'BioTech Labs': [
+    'ED-default': [
         { name: 'Luo Bin', email: 'luobin@biocloud.cn', role: '租户所有者' },
         { name: 'He Na', email: 'hena@biocloud.cn', role: '租户使用者' }
     ]
