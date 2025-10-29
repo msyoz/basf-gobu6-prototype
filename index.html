@@ -290,7 +290,6 @@
                             <thead>
                                 <tr>
                                     <th>应用名称</th>
-                                    <th>环境</th>
                                     <th>模板</th>
                                     <th>部署状态</th>
                                     <th>预估成本</th>
@@ -300,7 +299,6 @@
                             <tbody>
                                 <tr data-app="RG-default ERP">
                                     <td class="app-link">RG-default ERP</td>
-                                    <td>生产</td>
                                     <td>SAP S/4HANA</td>
                                     <td><span class="badge bg-success">运行中</span></td>
                                     <td>--</td>
@@ -311,7 +309,6 @@
                                 </tr>
                                 <tr data-app="Agri AI Insights">
                                     <td class="app-link">Agri AI Insights</td>
-                                    <td>测试</td>
                                     <td>AI Pipeline</td>
                                     <td><span class="badge bg-warning text-dark">部署中</span></td>
                                     <td>--</td>
@@ -322,7 +319,6 @@
                                 </tr>
                                 <tr data-app="RG-default ESG Portal" data-status="pending" data-tenant="RG-default">
                                     <td class="app-link">RG-default ESG Portal</td>
-                                    <td>预生产</td>
                                     <td>ESG Landing Zone</td>
                                     <td><span class="badge bg-info text-dark" data-role="deployment-status">待批准</span></td>
                                     <td data-role="app-cost">预估 ¥ 18,900</td>
@@ -334,7 +330,6 @@
                                 </tr>
                                 <tr data-app="BioCloud LIMS">
                                     <td class="app-link">BioCloud LIMS</td>
-                                    <td>生产</td>
                                     <td>Lab Automation</td>
                                     <td><span class="badge bg-success">运行中</span></td>
                                     <td>--</td>
@@ -739,7 +734,7 @@
     <div class="modal fade" id="appAddModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
-                <form>
+                <form id="appCreateForm">
                     <div class="modal-header">
                         <h5 class="modal-title">申请应用创建</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
@@ -747,37 +742,38 @@
                     <div class="modal-body row g-3">
                         <div class="col-md-6">
                             <label class="form-label">应用名称</label>
-                            <input type="text" class="form-control" placeholder="例如 RD Portal" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">所属租户</label>
-                            <select class="form-select" required>
-                                <option value="">选择租户</option>
-                                <option>RG-default</option>
-                                <option>EV-default</option>
-                                <option>ED-default</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">环境</label>
-                            <select class="form-select" required>
-                                <option>开发</option>
-                                <option>测试</option>
-                                <option selected>生产</option>
-                            </select>
+                            <input type="text" class="form-control" name="appName" placeholder="例如 RD Portal" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">选择模板</label>
-                            <select class="form-select" required>
+                            <select class="form-select" name="template" data-role="app-template" required>
                                 <option value="">选择模板</option>
-                                <option>SAP S/4HANA</option>
-                                <option>AI Pipeline</option>
-                                <option>Lab Automation</option>
+                                <option value="sap-s4hana">SAP S/4HANA</option>
+                                <option value="ai-pipeline">AI Pipeline</option>
+                                <option value="lab-automation">Lab Automation</option>
                             </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label">部署参数</label>
-                            <textarea class="form-control" rows="4" placeholder='{"region": "China East 3", "vmSize": "Standard_D4s_v4"}'></textarea>
+                            <div class="border rounded-3 mb-2 parameter-panel" data-role="parameter-panel">
+                                <div class="table-responsive mb-0" data-role="parameter-table-wrapper">
+                                    <table class="table table-sm align-middle mb-0" data-role="parameter-table">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 24%;">参数名称</th>
+                                                <th style="width: 18%;">输入类型</th>
+                                                <th>参数值</th>
+                                                <th style="width: 26%;">可选值</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody data-role="parameter-body"></tbody>
+                                    </table>
+                                </div>
+                                <div class="parameter-empty text-center text-muted" data-role="parameter-empty">
+                                    <div class="py-4">选择模板后自动载入参数。</div>
+                                </div>
+                            </div>
+                            <small class="text-muted" data-role="parameter-hint">参数由模板预置，仅需填写或选择参数值。</small>
                         </div>
                     </div>
                     <div class="modal-footer">
