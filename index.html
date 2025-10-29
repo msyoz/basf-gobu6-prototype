@@ -708,18 +708,23 @@
                             <input type="text" class="form-control" id="tenantUserName" name="name" required>
                         </div>
                         <div class="col-md-4">
-                            <label for="tenantUserEmail" class="form-label">邮箱</label>
-                            <input type="email" class="form-control" id="tenantUserEmail" name="email" required>
-                        </div>
-                        <div class="col-md-4">
                             <label for="tenantUserRole" class="form-label">角色</label>
                             <select class="form-select" id="tenantUserRole" name="role" required>
                                 <option value="租户所有者">租户所有者</option>
                                 <option value="租户使用者">租户使用者</option>
                             </select>
                         </div>
-                        <div class="col-12">
+                        <div class="col-md-4">
                             <button type="submit" class="btn btn-primary">添加用户</button>
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+                            <select class="form-select form-select-sm" data-role="tenant-user-group-name" style="max-width: 220px;">
+                                <option value="">选择用户组...</option>
+                            </select>
+                            <select class="form-select form-select-sm" data-role="tenant-user-group-role" style="max-width: 180px;">
+                                <option value="">赋予角色...</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-primary" data-action="add-tenant-user-group">添加用户组</button>
                         </div>
                     </form>
                 </div>

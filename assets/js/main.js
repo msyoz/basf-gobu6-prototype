@@ -455,6 +455,21 @@ const tenantUsersDirectory = {
     ]
 };
 
+const tenantUserGroups = {
+    'RG-default 应用团队': [
+        { name: 'Zhao Lei', email: 'zhaolei@RG-default.cn' },
+        { name: 'Qin Wei', email: 'qinwei@RG-default.cn' }
+    ],
+    'EV-default 数据组': [
+        { name: 'Xu Lin', email: 'xulin@EV-default.cn' },
+        { name: 'Wu Fan', email: 'wufan@EV-default.cn' }
+    ],
+    'ED-default 实验组': [
+        { name: 'Han Mei', email: 'hanmei@biocloud.cn' },
+        { name: 'Tang Fei', email: 'tangfei@biocloud.cn' }
+    ]
+};
+
 function createTabId(page) {
     return `tab-${page}`;
 }
@@ -753,21 +768,124 @@ function initTenantUsersModal() {
     const feedback = modalElement.querySelector('#tenantUsersFeedback');
     const form = modalElement.querySelector('#tenantUsersForm');
     const roleSelect = modalElement.querySelector('#tenantUserRole');
+    const addGroupBtn = modalElement.querySelector('[data-action="add-tenant-user-group"]');
+    const groupSelect = modalElement.querySelector('[data-role="tenant-user-group-name"]');
+    const groupRoleSelect = modalElement.querySelector('[data-role="tenant-user-group-role"]');
     let currentTenant = '';
 
     const setFeedback = (message, isError = false) => {
+        if (!feedback) return;
         feedback.textContent = message;
         feedback.classList.toggle('text-danger', isError);
         feedback.classList.toggle('text-success', !isError);
     };
+
+    const buildGroupOptions = () => {
+        if (!groupSelect) return;
+        groupSelect.innerHTML = '';
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '选择用户组...';
+        groupSelect.appendChild(placeholder);
+
+        Object.entries(tenantUserGroups).forEach(([groupName, members]) => {
+            const option = document.createElement('option');
+            option.value = groupName;
+            option.textContent = `${groupName} · ${members.length} 人`;
+            groupSelect.appendChild(option);
+        });
+    };
+
+    const buildGroupRoleOptions = () => {
+        if (!groupRoleSelect) return;
+        groupRoleSelect.innerHTML = '';
+
+        tenantUserRoles.forEach(role => {
+            const option = document.createElement('option');
+            option.value = role;
+            option.textContent = role;
+            groupRoleSelect.appendChild(option);
+        });
+    };
+
+    const resetGroupControls = () => {
+        if (groupSelect) {
+            const options = [...groupSelect.options].filter(opt => opt.value !== '');
+            groupSelect.value = options.length > 0 ? options[0].value : '';
+        }
+        if (groupRoleSelect && tenantUserRoles.length > 0) {
+            groupRoleSelect.value = tenantUserRoles[0];
+        }
+    };
+
+    addGroupBtn?.addEventListener('click', () => {
+        if (!currentTenant) {
+            setFeedback('请选择租户后再添加用户组。', true);
+            return;
+        }
+
+        const groupName = groupSelect?.value || '';
+        if (!groupName) {
+            setFeedback('请选择一个用户组。', true);
+            groupSelect?.focus();
+            return;
+        }
+
+        const targetRole = groupRoleSelect?.value || '';
+        if (!targetRole) {
+            setFeedback('请选择要赋予的角色。', true);
+            groupRoleSelect?.focus();
+            return;
+        }
+
+        const groupMembers = tenantUserGroups[groupName] || [];
+        if (groupMembers.length === 0) {
+            setFeedback(`${groupName} 暂无成员可添加。`, true);
+            return;
+        }
+
+        const users = getTenantUsers(currentTenant);
+        let addedCount = 0;
+        let updatedCount = 0;
+
+        groupMembers.forEach(member => {
+            const existing = users.find(user => user.email.toLowerCase() === member.email.toLowerCase());
+            if (existing) {
+                if (existing.role !== targetRole) {
+                    existing.role = targetRole;
+                    updatedCount += 1;
+                }
+            } else {
+                users.push({ name: member.name, email: member.email, role: targetRole });
+                addedCount += 1;
+            }
+        });
+
+        renderTenantUsersTable(tableBody, currentTenant);
+
+        if (addedCount === 0 && updatedCount === 0) {
+            setFeedback(`${groupName} 的成员已全部存在，无需重复添加。`, true);
+            return;
+        }
+
+        setFeedback(`已处理 ${groupName}：新增 ${addedCount} 人，更新 ${updatedCount} 人，角色均为 ${targetRole}。`);
+    });
 
     modalElement.addEventListener('show.bs.modal', event => {
         const trigger = event.relatedTarget;
         currentTenant = trigger?.dataset.tenant || '';
         tenantLabel.textContent = currentTenant || '未选择租户';
         modalTitle.textContent = currentTenant ? `租户用户管理 - ${currentTenant}` : '租户用户管理';
-        form.reset();
-        roleSelect.value = tenantUserRoles[0];
+        buildGroupOptions();
+        buildGroupRoleOptions();
+        if (form) {
+            form.reset();
+        }
+        if (roleSelect) {
+            roleSelect.value = tenantUserRoles[0];
+        }
+        resetGroupControls();
         setFeedback('');
         renderTenantUsersTable(tableBody, currentTenant);
     });
@@ -793,8 +911,23 @@ function initTenantUsersModal() {
         // Persist mock user assignments per tenant for demo interactions.
         users.push({ name, email, role });
         renderTenantUsersTable(tableBody, currentTenant);
+
+        const previousGroupValue = groupSelect?.value || '';
+        const previousGroupRole = groupRoleSelect?.value || '';
+
         form.reset();
-    roleSelect.value = tenantUserRoles[0];
+
+        if (roleSelect) {
+            roleSelect.value = tenantUserRoles[0];
+        }
+        if (groupSelect) {
+            groupSelect.value = previousGroupValue;
+        }
+        if (groupRoleSelect && previousGroupRole) {
+            groupRoleSelect.value = previousGroupRole;
+        } else if (groupRoleSelect) {
+            groupRoleSelect.value = tenantUserRoles[0];
+        }
         setFeedback(`已添加 ${name} (${role})`);
     });
 
