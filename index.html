@@ -627,41 +627,31 @@
                     </div>
                     <div class="modal-body row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">租户名称</label>
+                            <label class="form-label">租户代号</label>
                             <input type="text" class="form-control" placeholder="例如 RG-default" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">所属行业</label>
+                            <label class="form-label">租户名称</label>
+                            <input type="text" class="form-control" placeholder="例如 Group Research Default" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">所属OD</label>
                             <select class="form-select" required>
-                                <option value="">请选择行业</option>
-                                <option>化工</option>
-                                <option>农业</option>
-                                <option>生物科技</option>
-                                <option>新能源</option>
+                                <option value="">请选择 OD</option>
+                                <option>RG</option>
+                                <option>EV</option>
+                                <option>ED</option>
+                                <option>EM</option>
+                                <option>PM</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">联系人姓名</label>
-                            <input type="text" class="form-control" required>
+                            <label class="form-label">所有者</label>
+                            <input type="text" class="form-control" placeholder="例如 张三" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">联系人邮箱</label>
-                            <input type="email" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">月度预算</label>
-                            <div class="input-group">
-                                <span class="input-group-text">CNY</span>
-                                <input type="number" class="form-control" min="0" step="1000" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">成本中心编码</label>
-                            <input type="text" class="form-control" placeholder="例如 NEO-3421">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">备注</label>
-                            <textarea class="form-control" rows="3" placeholder="可填写重点关注事项"></textarea>
+                        <div class="col-md-12">
+                            <label class="form-label">描述</label>
+                            <input type="text" class="form-control" placeholder="简要描述租户用途" multiple>
                         </div>
                     </div>
                     <div class="modal-footer">
