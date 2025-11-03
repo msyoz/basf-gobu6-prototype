@@ -124,8 +124,8 @@ function resolveApprovalFlow(tenantName = '') {
         },
         {
             level: 2,
-            role: '应用管理员',
-            title: '2级 审批 - 应用管理员',
+            role: '租户管理员',
+            title: '2级 审批 - 租户管理员',
             contactName: appAdmin.name || '未配置',
             contactEmail: appAdmin.email || '--'
         },
