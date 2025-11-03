@@ -14,7 +14,7 @@ const applicationTenantSelectorTemplateId = 'applicationTenantSelector';
 const APPROVAL_STATUS_VARIANTS = {
     pending: { label: '待处理', className: 'bg-secondary' },
     inProgress: { label: '审批中...', className: 'bg-info text-dark' },
-    approved: { label: '已批准', className: 'bg-success' },
+    approved: { label: '已审批', className: 'bg-success' },
     rejected: { label: '已拒绝', className: 'bg-danger' }
 };
 
@@ -27,6 +27,60 @@ const approvalState = {
     timers: [],
     status: 'idle'
 };
+
+const APPLICATION_STATUS_BADGES = {
+    pending: { label: '待审批', className: 'badge bg-info text-dark' },
+    approved: { label: '已审批', className: 'badge bg-primary' },
+    creating: { label: '创建中', className: 'badge bg-warning text-dark' },
+    created: { label: '已创建', className: 'badge bg-success' },
+    rejected: { label: '已拒绝', className: 'badge bg-danger' }
+};
+
+const APPLICATION_RESOURCE_CONTEXT = {
+    created: {
+        labelSuffix: '的资源',
+        showProjectedCost: false,
+        emptyMessage: '暂无资源信息',
+        infoRowMessage: '',
+        infoRowVariant: 'table-info',
+        infoRowTextClass: 'text-muted'
+    },
+    pending: {
+        labelSuffix: '的拟创建资源',
+        showProjectedCost: true,
+        emptyMessage: '审批通过后将创建资源清单。',
+        infoRowMessage: '以下资源将在审批通过后自动创建。',
+        infoRowVariant: 'table-info',
+        infoRowTextClass: 'text-muted'
+    },
+    approved: {
+        labelSuffix: '的待创建资源',
+        showProjectedCost: true,
+        emptyMessage: '审批已完成，资源创建流程即将启动。',
+        infoRowMessage: '审批已完成，资源创建流程即将启动。',
+        infoRowVariant: 'table-info',
+        infoRowTextClass: 'text-muted'
+    },
+    creating: {
+        labelSuffix: '的正在创建资源',
+        showProjectedCost: false,
+        emptyMessage: '资源创建过程中，请稍候刷新查看状态。',
+        infoRowMessage: '资源正在创建，请稍候刷新查看状态。',
+        infoRowVariant: 'table-warning',
+        infoRowTextClass: 'text-dark'
+    },
+    rejected: {
+        labelSuffix: '的资源',
+        showProjectedCost: false,
+        forceEmptyMessage: '审批未通过，资源未创建。'
+    }
+};
+
+function resolveApplicationResourceContext(status) {
+    const baseContext = APPLICATION_RESOURCE_CONTEXT.created;
+    const specificContext = APPLICATION_RESOURCE_CONTEXT[status];
+    return specificContext ? { ...baseContext, ...specificContext } : baseContext;
+}
 
 let approvalModalElements = null;
 let approvalModalInstance = null;
@@ -188,7 +242,7 @@ function openApprovalModal(row) {
         }
         if (approvalModalElements.confirmBtn) {
             approvalModalElements.confirmBtn.disabled = true;
-            approvalModalElements.confirmBtn.textContent = '已批准';
+            approvalModalElements.confirmBtn.textContent = '已审批';
         }
         if (approvalModalElements.rejectBtn) {
             approvalModalElements.rejectBtn.disabled = true;
@@ -258,7 +312,7 @@ function finalizeApprovalSuccess() {
     }
     if (approvalModalElements.confirmBtn) {
         approvalModalElements.confirmBtn.disabled = true;
-        approvalModalElements.confirmBtn.textContent = '已批准';
+        approvalModalElements.confirmBtn.textContent = '已审批';
     }
     if (approvalModalElements.rejectBtn) {
         approvalModalElements.rejectBtn.disabled = true;
@@ -291,6 +345,31 @@ function handleApprovalReject() {
     updateApplicationRowStatus('rejected');
 }
 
+function syncApplicationRowActions(row) {
+    if (!row) return;
+
+    const status = row.dataset.status || 'pending';
+
+    const approveBtn = row.querySelector('[data-action="approve-app"]');
+    if (approveBtn) {
+        const shouldShowApprove = status === 'pending';
+        approveBtn.classList.toggle('d-none', !shouldShowApprove);
+        approveBtn.disabled = !shouldShowApprove;
+        approveBtn.textContent = '批准';
+        approveBtn.classList.remove('btn-success', 'btn-outline-secondary');
+        if (!approveBtn.classList.contains('btn-outline-success')) {
+            approveBtn.classList.add('btn-outline-success');
+        }
+    }
+
+    const deleteBtn = row.querySelector('[data-action="delete-app"]');
+    if (deleteBtn) {
+        const shouldShowDelete = status === 'created';
+        deleteBtn.classList.toggle('d-none', !shouldShowDelete);
+        deleteBtn.disabled = !shouldShowDelete;
+    }
+}
+
 function updateApplicationRowStatus(status) {
     const row = approvalState.currentRow;
     if (!row) return;
@@ -299,39 +378,12 @@ function updateApplicationRowStatus(status) {
 
     const statusBadge = row.querySelector('[data-role="deployment-status"]');
     if (statusBadge) {
-        if (status === 'approved') {
-            statusBadge.className = 'badge bg-success';
-            statusBadge.textContent = '已批准';
-        } else if (status === 'rejected') {
-            statusBadge.className = 'badge bg-danger';
-            statusBadge.textContent = '已拒绝';
-        } else {
-            statusBadge.className = 'badge bg-info text-dark';
-            statusBadge.textContent = '待批准';
-        }
+        const variant = APPLICATION_STATUS_BADGES[status] || APPLICATION_STATUS_BADGES.pending;
+        statusBadge.className = variant.className;
+        statusBadge.textContent = variant.label;
     }
 
-    const approveBtn = row.querySelector('[data-action="approve-app"]');
-    if (approveBtn) {
-        if (status === 'approved') {
-            approveBtn.textContent = '已批准';
-            approveBtn.classList.remove('btn-outline-success');
-            approveBtn.classList.remove('btn-outline-secondary');
-            approveBtn.classList.add('btn-success');
-            approveBtn.disabled = true;
-        } else if (status === 'rejected') {
-            approveBtn.textContent = '已拒绝';
-            approveBtn.classList.remove('btn-outline-success');
-            approveBtn.classList.remove('btn-success');
-            approveBtn.classList.add('btn-outline-secondary');
-            approveBtn.disabled = true;
-        } else {
-            approveBtn.textContent = '批准';
-            approveBtn.classList.remove('btn-success', 'btn-outline-secondary');
-            approveBtn.classList.add('btn-outline-success');
-            approveBtn.disabled = false;
-        }
-    }
+    syncApplicationRowActions(row);
 }
 
 function resetApprovalModal() {
@@ -640,14 +692,10 @@ function initializeApplicationsTab(container, payload) {
             const appName = row.dataset.app;
             if (!appName) return;
             const status = row.dataset.status || '';
-            if (status === 'rejected') {
-                resourceLabel.textContent = `${appName} 的资源`;
-                resourceTableBody.innerHTML = '<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">审批未通过，资源未创建。</td></tr>';
-                return;
-            }
-            const isPendingApproval = status === 'pending';
-            resourceLabel.textContent = isPendingApproval ? `${appName} 的拟创建资源` : `${appName} 的资源`;
-            renderResourceTable(resourceTableBody, appResources[appName], { isPendingApproval });
+            const context = resolveApplicationResourceContext(status);
+            const suffix = context.labelSuffix || '的资源';
+            resourceLabel.textContent = `${appName}${suffix}`;
+            renderResourceTable(resourceTableBody, appResources[appName], context);
         });
 
         const approveBtn = row.querySelector('[data-action="approve-app"]');
@@ -658,6 +706,8 @@ function initializeApplicationsTab(container, payload) {
                 openApprovalModal(row);
             });
         }
+
+        syncApplicationRowActions(row);
     });
 
     if (payload.tenant) {
@@ -695,11 +745,25 @@ function selectTenantInApplications(tenant, app) {
     }
 }
 
-function renderResourceTable(tbody, resources = [], options = {}) {
-    const { isPendingApproval = false } = options;
+function renderResourceTable(tbody, resources = [], context = {}) {
+    if (!tbody) return;
+
+    const {
+        showProjectedCost = false,
+        emptyMessage,
+        infoRowMessage,
+        infoRowVariant = 'table-info',
+        infoRowTextClass = 'text-muted',
+        forceEmptyMessage
+    } = context;
+
+    if (forceEmptyMessage) {
+        tbody.innerHTML = `<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">${forceEmptyMessage}</td></tr>`;
+        return;
+    }
 
     if (!resources || resources.length === 0) {
-        const message = isPendingApproval ? '审批通过后将创建资源清单。' : '暂无资源信息';
+        const message = emptyMessage || '暂无资源信息';
         tbody.innerHTML = `<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">${message}</td></tr>`;
         return;
     }
@@ -712,12 +776,14 @@ function renderResourceTable(tbody, resources = [], options = {}) {
         '待创建': 'bg-info text-dark'
     };
 
-    const infoRow = isPendingApproval ? '<tr class="table-info"><td colspan="4" class="text-muted">以下资源将在批准后自动创建。</td></tr>' : '';
+    const infoRow = infoRowMessage
+        ? `<tr class="${infoRowVariant}"><td colspan="4" class="${infoRowTextClass}">${infoRowMessage}</td></tr>`
+        : '';
 
     const resourceRows = resources
         .map(resource => {
             const statusClass = statusClassMap[resource.status] || 'bg-secondary';
-            const cost = isPendingApproval ? (resource.cost || '--') : '--';
+            const cost = showProjectedCost ? (resource.cost || '--') : '--';
             return `
             <tr>
                 <td>${resource.name}</td>
@@ -1382,18 +1448,15 @@ function renderResourceTableFromElement(tabPane, appName) {
     const resourceLabel = tabPane.querySelector('#resourceAppLabel');
     if (!resourceTableBody) return;
 
-    let isPendingApproval = false;
     const tableRows = Array.from(tabPane.querySelectorAll('#applicationsTable tbody tr'));
     const targetRow = tableRows.find(row => row.dataset.app === appName);
 
-    if (targetRow?.dataset.status === 'pending') {
-        isPendingApproval = true;
-        resourceLabel.textContent = `${appName} 的拟创建资源`;
-    } else {
-        resourceLabel.textContent = `${appName} 的资源`;
-    }
+    const status = targetRow?.dataset.status || '';
+    const context = resolveApplicationResourceContext(status);
+    const suffix = context.labelSuffix || '的资源';
+    resourceLabel.textContent = `${appName}${suffix}`;
 
-    renderResourceTable(resourceTableBody, appResources[appName], { isPendingApproval });
+    renderResourceTable(resourceTableBody, appResources[appName], context);
 }
 
 function toggleChat(open) {

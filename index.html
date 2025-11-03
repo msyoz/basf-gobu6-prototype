@@ -289,53 +289,54 @@
                         <table class="table table-hover align-middle" id="applicationsTable">
                             <thead>
                                 <tr>
-                                    <th>应用名称</th>
+                                    <th>代号</th>
+                                    <th>名称</th>
                                     <th>模板</th>
-                                    <th>部署状态</th>
-                                    <th>预估成本</th>
+                                    <th>使用资源数量</th>
+                                    <th>应用创建状态</th>
                                     <th class="text-end">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr data-app="RG-default ERP">
+                                <tr data-app="RG-default ERP" data-status="created" data-tenant="RG-default">
+                                    <td>APP-RG-001</td>
                                     <td class="app-link">RG-default ERP</td>
                                     <td>SAP S/4HANA</td>
-                                    <td><span class="badge bg-success">运行中</span></td>
-                                    <td>--</td>
+                                    <td>4</td>
+                                    <td><span class="badge bg-success">已创建</span></td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#appEditModal">编辑</button>
-                                        <button class="btn btn-sm btn-outline-danger">删除</button>
+                                        <button class="btn btn-sm btn-outline-danger" data-action="delete-app">删除</button>
                                     </td>
                                 </tr>
-                                <tr data-app="Agri AI Insights">
+                                <tr data-app="Agri AI Insights" data-status="creating" data-tenant="EV-default">
+                                    <td>APP-EV-014</td>
                                     <td class="app-link">Agri AI Insights</td>
                                     <td>AI Pipeline</td>
-                                    <td><span class="badge bg-warning text-dark">部署中</span></td>
-                                    <td>--</td>
+                                    <td>3</td>
+                                    <td><span class="badge bg-warning text-dark">创建中</span></td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#appEditModal">编辑</button>
-                                        <button class="btn btn-sm btn-outline-danger">删除</button>
+                                        <button class="btn btn-sm btn-outline-danger d-none" data-action="delete-app">删除</button>
                                     </td>
                                 </tr>
                                 <tr data-app="RG-default ESG Portal" data-status="pending" data-tenant="RG-default">
+                                    <td>APP-RG-019</td>
                                     <td class="app-link">RG-default ESG Portal</td>
                                     <td>ESG Landing Zone</td>
-                                    <td><span class="badge bg-info text-dark" data-role="deployment-status">待批准</span></td>
-                                    <td data-role="app-cost">预估 ¥ 18,900</td>
+                                    <td>4</td>
+                                    <td><span class="badge bg-info text-dark" data-role="deployment-status">待审批</span></td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#appEditModal">编辑</button>
                                         <button class="btn btn-sm btn-outline-success me-2" data-action="approve-app">批准</button>
-                                        <button class="btn btn-sm btn-outline-danger">删除</button>
+                                        <button class="btn btn-sm btn-outline-danger d-none" data-action="delete-app">删除</button>
                                     </td>
                                 </tr>
-                                <tr data-app="BioCloud LIMS">
+                                <tr data-app="BioCloud LIMS" data-status="created" data-tenant="ED-default">
+                                    <td>APP-ED-008</td>
                                     <td class="app-link">BioCloud LIMS</td>
                                     <td>Lab Automation</td>
-                                    <td><span class="badge bg-success">运行中</span></td>
-                                    <td>--</td>
+                                    <td>3</td>
+                                    <td><span class="badge bg-success">已创建</span></td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#appEditModal">编辑</button>
-                                        <button class="btn btn-sm btn-outline-danger">删除</button>
+                                        <button class="btn btn-sm btn-outline-danger" data-action="delete-app">删除</button>
                                     </td>
                                 </tr>
                             </tbody>
