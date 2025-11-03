@@ -281,6 +281,9 @@
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#appAddModal">
                         <i class="bi bi-plus-lg me-1"></i>申请应用创建
                     </button>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#appEditRequestModal">
+                        <i class="bi bi-pencil-square me-1"></i>申请应用编辑
+                    </button>
                 </div>
             </div>
             <div class="row flex-grow-1 g-3">
@@ -741,11 +744,15 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
                     </div>
                     <div class="modal-body row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label">应用代号</label>
+                            <input type="text" class="form-control" name="appCode" placeholder="例如 APP-RG-020" required>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label">应用名称</label>
                             <input type="text" class="form-control" name="appName" placeholder="例如 RD Portal" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label">选择模板</label>
                             <select class="form-select" name="template" data-role="app-template" required>
                                 <option value="">选择模板</option>
@@ -780,6 +787,62 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
                         <button type="submit" class="btn btn-primary">提交申请</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="appEditRequestModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form id="appEditForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title">申请应用编辑</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">选择应用</label>
+                            <select class="form-select" name="appCode" data-role="app-edit-target" required>
+                                <option value="">请选择应用...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">当前模板</label>
+                            <input type="text" class="form-control" data-role="app-edit-template" readonly>
+                            <input type="hidden" name="templateId" data-role="app-edit-template-id">
+                            <input type="hidden" name="appName" data-role="app-edit-name">
+                        </div>
+                        <div class="col-12">
+                            <div class="alert alert-info small mb-0">仅支持更新部署参数，应用基础信息保持不变。</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">部署参数</label>
+                            <div class="border rounded-3 mb-2 parameter-panel" data-role="parameter-panel">
+                                <div class="table-responsive mb-0" data-role="parameter-table-wrapper">
+                                    <table class="table table-sm align-middle mb-0" data-role="parameter-table">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 24%;">参数名称</th>
+                                                <th style="width: 18%;">输入类型</th>
+                                                <th>参数值</th>
+                                                <th style="width: 26%;">可选值</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody data-role="parameter-body"></tbody>
+                                    </table>
+                                </div>
+                                <div class="parameter-empty text-center text-muted" data-role="parameter-empty">
+                                    <div class="py-4">请选择应用以加载参数。</div>
+                                </div>
+                            </div>
+                            <small class="text-muted" data-role="parameter-hint">请选择应用以加载部署参数。</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">提交变更</button>
                     </div>
                 </form>
             </div>

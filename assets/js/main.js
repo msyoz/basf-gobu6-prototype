@@ -516,8 +516,320 @@ const APP_TEMPLATE_PARAMETERS = {
             type: 'text',
             value: 'lab-automation-ops'
         }
+    ],
+    'esg-landing-zone': [
+        {
+            name: 'region',
+            type: 'select',
+            value: 'China North 3',
+            options: ['China North 3', 'China East 3']
+        },
+        {
+            name: 'complianceLevel',
+            type: 'select',
+            value: 'cn-tier-1',
+            options: ['cn-tier-1', 'cn-tier-2']
+        },
+        {
+            name: 'enableCostGuard',
+            type: 'select',
+            value: 'true',
+            options: ['true', 'false']
+        },
+        {
+            name: 'ownerEmail',
+            type: 'text',
+            value: 'esg-owner@rd-digital.com'
+        }
     ]
 };
+
+const APPLICATION_DEPLOYMENTS = {
+    'APP-RG-001': {
+        code: 'APP-RG-001',
+        name: 'RG-default ERP',
+        tenant: 'RG-default',
+        templateId: 'sap-s4hana',
+        templateName: 'SAP S/4HANA',
+        parameters: [
+            {
+                name: 'region',
+                type: 'select',
+                value: 'China North 3',
+                options: ['China East 3', 'China North 3', 'China North 2']
+            },
+            {
+                name: 'environment',
+                type: 'select',
+                value: 'production',
+                options: ['dev', 'test', 'production']
+            },
+            {
+                name: 'vmSize',
+                type: 'select',
+                value: 'Standard_D8s_v5',
+                options: ['Standard_D4s_v4', 'Standard_D8s_v5', 'Standard_E4s_v5']
+            },
+            {
+                name: 'adminEmail',
+                type: 'text',
+                value: 'sap-admin@rd-digital.com'
+            }
+        ]
+    },
+    'APP-EV-014': {
+        code: 'APP-EV-014',
+        name: 'Agri AI Insights',
+        tenant: 'EV-default',
+        templateId: 'ai-pipeline',
+        templateName: 'AI Pipeline',
+        parameters: [
+            {
+                name: 'region',
+                type: 'select',
+                value: 'China East 3',
+                options: ['China East 3', 'China North 3']
+            },
+            {
+                name: 'computeCluster',
+                type: 'select',
+                value: 'gpu-d16',
+                options: ['cpu-d8', 'gpu-d16', 'gpu-d32']
+            },
+            {
+                name: 'dataLakeName',
+                type: 'text',
+                value: 'adl-agri-insight'
+            },
+            {
+                name: 'enableDr',
+                type: 'select',
+                value: 'true',
+                options: ['true', 'false']
+            }
+        ]
+    },
+    'APP-RG-019': {
+        code: 'APP-RG-019',
+        name: 'RG-default ESG Portal',
+        tenant: 'RG-default',
+        templateId: 'esg-landing-zone',
+        templateName: 'ESG Landing Zone',
+        parameters: [
+            {
+                name: 'region',
+                type: 'select',
+                value: 'China North 3',
+                options: ['China North 3', 'China East 3']
+            },
+            {
+                name: 'complianceLevel',
+                type: 'select',
+                value: 'cn-tier-1',
+                options: ['cn-tier-1', 'cn-tier-2']
+            },
+            {
+                name: 'enableCostGuard',
+                type: 'select',
+                value: 'true',
+                options: ['true', 'false']
+            },
+            {
+                name: 'ownerEmail',
+                type: 'text',
+                value: 'esg-owner@rd-digital.com'
+            }
+        ]
+    },
+    'APP-ED-008': {
+        code: 'APP-ED-008',
+        name: 'BioCloud LIMS',
+        tenant: 'ED-default',
+        templateId: 'lab-automation',
+        templateName: 'Lab Automation',
+        parameters: [
+            {
+                name: 'region',
+                type: 'select',
+                value: 'China North 2',
+                options: ['China North 2', 'China North 3']
+            },
+            {
+                name: 'storageTier',
+                type: 'select',
+                value: 'hot',
+                options: ['hot', 'cool']
+            },
+            {
+                name: 'retentionDays',
+                type: 'text',
+                value: '30'
+            },
+            {
+                name: 'contactGroup',
+                type: 'text',
+                value: 'lab-automation-ops'
+            }
+        ]
+    }
+};
+
+function setupParameterPanel(modalElement) {
+    if (!modalElement) return null;
+
+    const table = modalElement.querySelector('[data-role="parameter-table"]');
+    const tableBody = modalElement.querySelector('[data-role="parameter-body"]');
+    const emptyState = modalElement.querySelector('[data-role="parameter-empty"]');
+    const hint = modalElement.querySelector('[data-role="parameter-hint"]');
+
+    if (!tableBody) return null;
+
+    const updateEmptyState = () => {
+        const hasRows = tableBody.querySelectorAll('tr').length > 0;
+        table?.classList.toggle('d-none', !hasRows);
+        emptyState?.classList.toggle('d-none', hasRows);
+    };
+
+    const setHint = (message, tone = 'muted') => {
+        if (!hint) return;
+        hint.textContent = message;
+        hint.classList.remove('text-muted', 'text-warning');
+        hint.classList.add(tone === 'warning' ? 'text-warning' : 'text-muted');
+    };
+
+    const setValueControl = (row, type, value, optionsList) => {
+        const cell = row.querySelector('[data-role="param-value-cell"]');
+        if (!cell) return;
+
+        const normalizedOptions = Array.isArray(optionsList) ? optionsList : [];
+        const resolvedValue = value !== undefined && value !== null && value !== ''
+            ? value
+            : normalizedOptions[0] || '';
+
+        cell.innerHTML = '';
+
+        if (type === 'select') {
+            const select = document.createElement('select');
+            select.className = 'form-select form-select-sm';
+            select.name = 'paramValue[]';
+            select.dataset.role = 'param-value';
+
+            if (normalizedOptions.length === 0) {
+                const placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.textContent = '无可选值';
+                placeholder.disabled = true;
+                placeholder.selected = true;
+                select.appendChild(placeholder);
+            } else {
+                normalizedOptions.forEach(optionValue => {
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = optionValue;
+                    select.appendChild(option);
+                });
+
+                if (normalizedOptions.includes(resolvedValue)) {
+                    select.value = resolvedValue;
+                } else {
+                    select.value = normalizedOptions[0];
+                }
+            }
+
+            cell.appendChild(select);
+        } else {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control form-control-sm';
+            input.name = 'paramValue[]';
+            input.dataset.role = 'param-value';
+            input.placeholder = '请输入参数值';
+            input.value = resolvedValue;
+            cell.appendChild(input);
+        }
+    };
+
+    const createRow = (param = {}) => {
+        const { name = '', type = 'text', value = '', options = [] } = param;
+        const row = document.createElement('tr');
+        row.dataset.role = 'parameter-row';
+
+        const typeLabel = type === 'select' ? '下拉选择' : '文本输入';
+        const normalizedOptions = Array.isArray(options) ? options : [];
+
+        row.innerHTML = `
+            <td>
+                <span class="form-control-plaintext fw-semibold mb-0">${name}</span>
+                <input type="hidden" name="paramName[]" value="${name}">
+            </td>
+            <td>
+                <span class="badge bg-light text-dark" data-role="param-type-label">${typeLabel}</span>
+                <input type="hidden" name="paramType[]" value="${type}">
+            </td>
+            <td data-role="param-value-cell"></td>
+            <td data-role="param-options-cell"></td>
+        `;
+
+        const optionsCell = row.querySelector('[data-role="param-options-cell"]');
+        if (optionsCell) {
+            if (normalizedOptions.length === 0) {
+                optionsCell.innerHTML = '<span class="text-muted">--</span>';
+            } else {
+                const list = document.createElement('div');
+                list.className = 'd-flex flex-wrap gap-1';
+                normalizedOptions.forEach(optionValue => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-light text-primary border border-primary border-opacity-25';
+                    badge.textContent = optionValue;
+                    list.appendChild(badge);
+                });
+                optionsCell.appendChild(list);
+            }
+
+            const hiddenOptions = document.createElement('input');
+            hiddenOptions.type = 'hidden';
+            hiddenOptions.name = 'paramOptions[]';
+            hiddenOptions.value = normalizedOptions.join(',');
+            optionsCell.appendChild(hiddenOptions);
+        }
+
+        setValueControl(row, type, value, normalizedOptions);
+
+        return row;
+    };
+
+    const clear = () => {
+        tableBody.innerHTML = '';
+        updateEmptyState();
+    };
+
+    const renderParameters = (parameters = []) => {
+        clear();
+        if (!Array.isArray(parameters) || parameters.length === 0) {
+            updateEmptyState();
+            return;
+        }
+
+        parameters.forEach(param => {
+            const row = createRow(param);
+            tableBody.appendChild(row);
+        });
+
+        updateEmptyState();
+    };
+
+    updateEmptyState();
+
+    return {
+        renderParameters,
+        clear,
+        updateEmptyState,
+        setHint,
+        table,
+        tableBody,
+        emptyState
+    };
+}
 
 const roleAssignments = {
     'Platform Admins': {
@@ -907,183 +1219,47 @@ function initAppCreationModal() {
 
     const form = modalElement.querySelector('#appCreateForm');
     const templateSelect = modalElement.querySelector('[data-role="app-template"]');
-    const table = modalElement.querySelector('[data-role="parameter-table"]');
-    const tableBody = modalElement.querySelector('[data-role="parameter-body"]');
-    const emptyState = modalElement.querySelector('[data-role="parameter-empty"]');
-    const hint = modalElement.querySelector('[data-role="parameter-hint"]');
+    const parameterPanel = setupParameterPanel(modalElement);
 
-    if (!form || !tableBody) return;
+    if (!form || !parameterPanel) return;
 
-    const updateEmptyState = () => {
-        const hasRows = tableBody.querySelectorAll('tr').length > 0;
-        table?.classList.toggle('d-none', !hasRows);
-        emptyState?.classList.toggle('d-none', hasRows);
-    };
-
-    const setValueControl = (row, type, value, optionsList) => {
-        const cell = row.querySelector('[data-role="param-value-cell"]');
-        if (!cell) return;
-
-        const normalizedOptions = Array.isArray(optionsList) ? optionsList : [];
-        const previousControl = row.querySelector('[data-role="param-value"]');
-        const previousValue = previousControl ? previousControl.value : '';
-        const resolvedValue = value !== undefined && value !== null && value !== '' ? value : previousValue;
-
-        cell.innerHTML = '';
-
-        if (type === 'select') {
-            const select = document.createElement('select');
-            select.className = 'form-select form-select-sm';
-            select.name = 'paramValue[]';
-            select.dataset.role = 'param-value';
-
-            const optionsToRender = normalizedOptions.length > 0
-                ? normalizedOptions
-                : (resolvedValue ? [resolvedValue] : []);
-
-            if (optionsToRender.length === 0) {
-                const placeholder = document.createElement('option');
-                placeholder.value = '';
-                placeholder.textContent = '无可选值';
-                placeholder.disabled = true;
-                placeholder.selected = true;
-                select.appendChild(placeholder);
-            } else {
-                optionsToRender.forEach(optionValue => {
-                    const option = document.createElement('option');
-                    option.value = optionValue;
-                    option.textContent = optionValue;
-                    select.appendChild(option);
-                });
-
-                if (optionsToRender.includes(resolvedValue)) {
-                    select.value = resolvedValue;
-                } else {
-                    select.value = optionsToRender[0];
-                }
-            }
-
-            cell.appendChild(select);
-        } else {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'form-control form-control-sm';
-            input.name = 'paramValue[]';
-            input.dataset.role = 'param-value';
-            input.placeholder = '请输入参数值';
-            input.value = resolvedValue;
-
-            cell.appendChild(input);
-        }
-    };
-
-    const createRow = (param = {}) => {
-        const { name = '', type = 'text', value = '', options = [] } = param;
-        const row = document.createElement('tr');
-        row.dataset.role = 'parameter-row';
-
-        const typeLabel = type === 'select' ? '下拉选择' : '文本输入';
-        const normalizedOptions = Array.isArray(options) ? options : [];
-
-        row.innerHTML = `
-            <td>
-                <span class="form-control-plaintext fw-semibold mb-0">${name}</span>
-                <input type="hidden" name="paramName[]" value="${name}">
-            </td>
-            <td>
-                <span class="badge bg-light text-dark" data-role="param-type-label">${typeLabel}</span>
-                <input type="hidden" name="paramType[]" value="${type}">
-            </td>
-            <td data-role="param-value-cell"></td>
-            <td data-role="param-options-cell"></td>
-        `;
-
-        const optionsCell = row.querySelector('[data-role="param-options-cell"]');
-        if (optionsCell) {
-            if (normalizedOptions.length === 0) {
-                optionsCell.innerHTML = '<span class="text-muted">--</span>';
-            } else {
-                const list = document.createElement('div');
-                list.className = 'd-flex flex-wrap gap-1';
-                normalizedOptions.forEach(optionValue => {
-                    const badge = document.createElement('span');
-                    badge.className = 'badge bg-light text-primary border border-primary border-opacity-25';
-                    badge.textContent = optionValue;
-                    list.appendChild(badge);
-                });
-                optionsCell.appendChild(list);
-            }
-
-            const hiddenOptions = document.createElement('input');
-            hiddenOptions.type = 'hidden';
-            hiddenOptions.name = 'paramOptions[]';
-            hiddenOptions.value = normalizedOptions.join(',');
-            optionsCell.appendChild(hiddenOptions);
-        }
-
-        setValueControl(row, type, value || normalizedOptions[0] || '', normalizedOptions);
-
-        return row;
-    };
-
-    const clearRows = () => {
-        tableBody.innerHTML = '';
-    };
-
-    const addRow = param => {
-        const row = createRow(param);
-        tableBody.appendChild(row);
-        updateEmptyState();
+    const setDefaultHint = () => {
+        parameterPanel.setHint('参数由模板预置，仅需填写或选择参数值。', 'muted');
     };
 
     const loadTemplateParameters = templateId => {
-        clearRows();
-
         if (!templateId) {
-            updateEmptyState();
-            if (hint) {
-                hint.textContent = '请选择模板以查看部署参数。';
-                hint.classList.remove('text-warning');
-                hint.classList.add('text-muted');
-            }
+            parameterPanel.clear();
+            parameterPanel.setHint('请选择模板以查看部署参数。', 'muted');
             return;
         }
 
         const parameters = APP_TEMPLATE_PARAMETERS[templateId] || [];
+        parameterPanel.renderParameters(parameters);
 
-        if (parameters.length > 0) {
-            parameters.forEach(param => addRow(param));
-            hint?.classList.remove('text-warning');
-            hint?.classList.add('text-muted');
-            if (hint) hint.textContent = '模板已预置参数，仅需填写或选择参数值。';
+        if (parameters.length === 0) {
+            parameterPanel.setHint('当前模板无需额外参数。', 'warning');
         } else {
-            updateEmptyState();
-            hint?.classList.remove('text-muted');
-            hint?.classList.add('text-warning');
-            if (hint) hint.textContent = '当前模板无需额外参数。';
+            parameterPanel.setHint('模板已预置参数，仅需填写或选择参数值。', 'muted');
         }
     };
 
     templateSelect?.addEventListener('change', event => {
-        const templateId = event.target.value;
-        loadTemplateParameters(templateId);
+        loadTemplateParameters(event.target.value);
     });
 
     modalElement.addEventListener('show.bs.modal', () => {
         form.reset();
-        const templateId = templateSelect?.value || '';
-        loadTemplateParameters(templateId);
-        updateEmptyState();
+        if (templateSelect) {
+            templateSelect.value = '';
+        }
+        parameterPanel.clear();
+        parameterPanel.setHint('请选择模板以查看部署参数。', 'muted');
     });
 
     modalElement.addEventListener('hidden.bs.modal', () => {
-        clearRows();
-        updateEmptyState();
-        if (hint) {
-            hint.textContent = '参数由模板预置，仅需填写或选择参数值。';
-            hint.classList.remove('text-warning');
-            hint.classList.add('text-muted');
-        }
+        parameterPanel.clear();
+        setDefaultHint();
     });
 
     form.addEventListener('submit', event => {
@@ -1094,7 +1270,90 @@ function initAppCreationModal() {
         }
     });
 
-    updateEmptyState();
+    parameterPanel.updateEmptyState();
+    setDefaultHint();
+}
+
+function initAppEditModal() {
+    const modalElement = document.getElementById('appEditRequestModal');
+    if (!modalElement) return;
+
+    const form = modalElement.querySelector('#appEditForm');
+    const appSelect = modalElement.querySelector('[data-role="app-edit-target"]');
+    const templateDisplay = modalElement.querySelector('[data-role="app-edit-template"]');
+    const templateIdInput = modalElement.querySelector('[data-role="app-edit-template-id"]');
+    const appNameInput = modalElement.querySelector('[data-role="app-edit-name"]');
+    const parameterPanel = setupParameterPanel(modalElement);
+
+    if (!form || !appSelect || !parameterPanel) return;
+
+    const populateOptions = () => {
+        appSelect.innerHTML = '<option value="">请选择应用...</option>';
+        Object.values(APPLICATION_DEPLOYMENTS).forEach(deployment => {
+            const option = document.createElement('option');
+            option.value = deployment.code;
+            option.textContent = `${deployment.code} · ${deployment.name}`;
+            appSelect.appendChild(option);
+        });
+    };
+
+    const resetContext = () => {
+        appSelect.value = '';
+        if (templateDisplay) templateDisplay.value = '';
+        if (templateIdInput) templateIdInput.value = '';
+        if (appNameInput) appNameInput.value = '';
+        parameterPanel.clear();
+        parameterPanel.setHint('请选择应用以加载部署参数。', 'muted');
+    };
+
+    const applyDeployment = deployment => {
+        if (!deployment) {
+            resetContext();
+            return;
+        }
+
+        if (templateDisplay) templateDisplay.value = deployment.templateName || '';
+        if (templateIdInput) templateIdInput.value = deployment.templateId || '';
+        if (appNameInput) appNameInput.value = deployment.name || '';
+
+        const parameters = Array.isArray(deployment.parameters) && deployment.parameters.length > 0
+            ? deployment.parameters
+            : (APP_TEMPLATE_PARAMETERS[deployment.templateId] || []);
+
+        parameterPanel.renderParameters(parameters);
+        if (parameters.length === 0) {
+            parameterPanel.setHint('当前模板无需额外参数。', 'warning');
+        } else {
+            parameterPanel.setHint('该操作仅调整部署参数。', 'muted');
+        }
+    };
+
+    appSelect.addEventListener('change', event => {
+        const deployment = APPLICATION_DEPLOYMENTS[event.target.value];
+        applyDeployment(deployment);
+    });
+
+    modalElement.addEventListener('show.bs.modal', () => {
+        populateOptions();
+        resetContext();
+    });
+
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        parameterPanel.clear();
+        parameterPanel.setHint('请选择应用以加载部署参数。', 'muted');
+    });
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+        if (!appSelect.value) {
+            appSelect.focus();
+            return;
+        }
+        if (typeof bootstrap !== 'undefined') {
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            setTimeout(() => modalInstance.hide(), 300);
+        }
+    });
 }
 
 function initTenantUsersModal() {
@@ -1536,6 +1795,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initChat();
     initSidebar();
     initAppCreationModal();
+    initAppEditModal();
     initTenantFormModal();
     initTenantUsersModal();
     bootstrapDefaultTabs();
