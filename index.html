@@ -494,11 +494,14 @@
                 </div>
                 <div class="col-lg-8 d-flex flex-column">
                     <div class="card flex-grow-1">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="mb-0" id="roleUserTitle">选择角色查看用户</h6>
                                 <small class="text-muted" id="roleDescription">选择左侧角色以加载用户列表。</small>
                             </div>
+                            <button class="btn btn-sm btn-primary d-none" id="roleAddUserBtn">
+                                <i class="bi bi-person-plus me-1"></i>添加用户
+                            </button>
                         </div>
                         <div class="table-responsive flex-grow-1">
                             <table class="table table-hover align-middle mb-0" id="roleUsersTable">

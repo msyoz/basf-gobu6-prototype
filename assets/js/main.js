@@ -2119,6 +2119,19 @@ function initializeRolesTab(container) {
     const roleTitle = container.querySelector('#roleUserTitle');
     const roleDescription = container.querySelector('#roleDescription');
     const userTableBody = container.querySelector('#roleUsersTable tbody');
+    const addUserBtn = container.querySelector('#roleAddUserBtn');
+
+    const addableRoles = new Set(['Platform Admins', 'Tenant Admins', 'Template Admins']);
+    let activeRoleName = null;
+
+    const syncAddUserButton = () => {
+        if (!addUserBtn) return;
+        const shouldShow = activeRoleName && addableRoles.has(activeRoleName);
+        addUserBtn.classList.toggle('d-none', !shouldShow);
+        if (shouldShow) {
+            addUserBtn.disabled = false;
+        }
+    };
 
     if (!roleList || !roleTitle || !roleDescription || !userTableBody) return;
 
@@ -2130,6 +2143,7 @@ function initializeRolesTab(container) {
         renderRoleUsers(userTableBody, []);
         roleTitle.textContent = '无可用角色';
         roleDescription.textContent = '系统尚未配置内置角色。';
+        syncAddUserButton();
         return;
     }
 
@@ -2144,9 +2158,12 @@ function initializeRolesTab(container) {
             roleTitle.textContent = roleName;
             roleDescription.textContent = roleInfo.description || '此角色暂无说明。';
             renderRoleUsers(userTableBody, roleInfo.users);
+            activeRoleName = roleName;
         }
         roleList.appendChild(button);
     });
+
+    syncAddUserButton();
 
     roleList.addEventListener('click', event => {
         const target = event.target.closest('.list-group-item-action');
@@ -2162,6 +2179,60 @@ function initializeRolesTab(container) {
         roleTitle.textContent = roleName;
         roleDescription.textContent = roleInfo.description || '此角色暂无说明。';
         renderRoleUsers(userTableBody, roleInfo.users);
+        activeRoleName = roleName;
+        syncAddUserButton();
+    });
+
+    addUserBtn?.addEventListener('click', () => {
+        if (!activeRoleName) return;
+        const roleInfo = roleAssignments[activeRoleName];
+        if (!roleInfo) return;
+
+        const emailInput = window.prompt('请输入要添加的用户邮箱：');
+        const email = emailInput ? emailInput.trim() : '';
+        if (!email) return;
+
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+            window.alert('请输入有效的邮箱地址。');
+            return;
+        }
+
+        const isDuplicated = roleInfo.users.some(user => user.email.toLowerCase() === email.toLowerCase());
+        if (isDuplicated) {
+            window.alert('该邮箱已在当前角色中。');
+            return;
+        }
+
+        const buildNameFromEmail = value => {
+            const local = value.split('@')[0] || '用户';
+            const normalized = local
+                .split(/[._-]+/)
+                .filter(Boolean)
+                .map(part => part.charAt(0).toUpperCase() + part.slice(1));
+            return normalized.length > 0 ? normalized.join(' ') : local;
+        };
+
+        let tenantValue = '--';
+        if (activeRoleName === 'Platform Admins' || activeRoleName === 'Template Admins') {
+            tenantValue = 'Platform';
+        } else if (activeRoleName === 'Tenant Admins') {
+            const tenantPrompt = window.prompt('请输入用户所属租户（可选）', '');
+            tenantValue = tenantPrompt ? tenantPrompt.trim() || '--' : '--';
+        }
+
+        roleInfo.users.push({
+            name: buildNameFromEmail(email),
+            email,
+            tenant: tenantValue
+        });
+
+        renderRoleUsers(userTableBody, roleInfo.users);
+
+        const badge = roleList.querySelector(`[data-role="${activeRoleName}"] .badge`);
+        if (badge) {
+            badge.textContent = String(roleInfo.users.length);
+        }
     });
 }
 
