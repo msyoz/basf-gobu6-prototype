@@ -289,6 +289,57 @@ body {
     background: #fff;
 }
 
+.knowledge-qa-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 12px 40px rgba(31, 42, 68, 0.08);
+}
+
+.knowledge-qa-messages {
+    background: linear-gradient(180deg, rgba(47, 87, 211, 0.04) 0%, rgba(255, 255, 255, 0) 40%);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    overflow-y: auto;
+    min-height: 260px;
+}
+
+.knowledge-qa-message {
+    margin-bottom: 1rem;
+    max-width: 70%;
+}
+
+.knowledge-qa-message .name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(31, 42, 68, 0.6);
+}
+
+.knowledge-qa-message .bubble {
+    margin-top: 0.25rem;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    background: #f0f3ff;
+    color: #1f2a44;
+    border-top-left-radius: 0.25rem;
+}
+
+.knowledge-qa-message.user {
+    margin-left: auto;
+    text-align: right;
+}
+
+.knowledge-qa-message.user .bubble {
+    background: #2f57d3;
+    color: #fff;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 0.25rem;
+}
+
+.knowledge-qa-input .input-group > .form-control {
+    border-top-left-radius: 1.5rem;
+    border-bottom-left-radius: 1.5rem;
+}
+
 .placeholder-row {
     background: rgba(47, 87, 211, 0.04);
 }

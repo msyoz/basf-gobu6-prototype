@@ -1254,6 +1254,48 @@ const KNOWLEDGE_DOCUMENTS = {
     ]
 };
 
+const KNOWLEDGE_QA_RESPONSE_DELAY = 600;
+
+const KNOWLEDGE_QA_SCOPE_CONFIG = {
+    tenant: {
+        title: '租户知识库问答',
+        description: '从租户知识库检索最佳答案',
+        context: '当前租户：RG-default',
+        welcome: '您好，我可以针对租户知识库内容为您解答。请告诉我您的问题。'
+    },
+    personal: {
+        title: '个人知识库问答',
+        description: '结合个人笔记提供专属建议',
+        context: '当前用户：Admin User',
+        welcome: '这里是您的个人知识助手，尽管提出问题，我会根据个人资料进行回答。'
+    }
+};
+
+const KNOWLEDGE_QA_PRESET_RESPONSES = {
+    tenant: [
+        {
+            answer: '根据租户知识库，应用上线流程分为申请、审批与部署三个阶段，您可以在应用管理页面跟踪每一步状态。'
+        },
+        {
+            answer: '租户常见问题手册建议：在提交 Terraform 模板更新前，先在沙箱租户验证参数，并同步管理员审批人名单。'
+        },
+        {
+            answer: '成本优化章节指出：建议每月复核云资源使用情况，对闲置的计算实例设置自动关停策略。'
+        }
+    ],
+    personal: [
+        {
+            answer: '您在个人笔记中记录：处理平台工单时，优先检查租户访问策略是否包含最新的用户组配置。'
+        },
+        {
+            answer: '根据您的常见问题整理，部署脚本失败时可先执行 “az login --tenant <tenantId>” 重新授权后重试。'
+        },
+        {
+            answer: '个人知识库提示：每次发布前，请更新变更记录并通知项目干系人确认。'
+        }
+    ]
+};
+
 function createTabId(page) {
     return `tab-${page}`;
 }
@@ -1329,6 +1371,8 @@ function openTab(page, title, payload = {}) {
         initializeResourcesTab(tabPane, payload);
     } else if (page === 'knowledge') {
         initializeKnowledgeTab(tabPane);
+    } else if (page === 'knowledge-qa') {
+        initializeKnowledgeQATab(tabPane);
     }
 }
 
@@ -1920,6 +1964,154 @@ function initializeKnowledgeTab(container) {
 
     syncScopeButtons();
     render();
+}
+
+function initializeKnowledgeQATab(container) {
+    const scopeToggle = container.querySelector('[data-role="knowledge-qa-scope"]');
+    const scopeButtons = scopeToggle ? Array.from(scopeToggle.querySelectorAll('[data-scope]')) : [];
+    const messages = container.querySelector('[data-role="knowledge-qa-messages"]');
+    const form = container.querySelector('[data-role="knowledge-qa-form"]');
+    const input = container.querySelector('[data-role="knowledge-qa-input"]');
+    const resetBtn = container.querySelector('[data-role="knowledge-qa-reset"]');
+    const scopeLabel = container.querySelector('[data-role="knowledge-qa-scope-label"]');
+    const scopeDesc = container.querySelector('[data-role="knowledge-qa-scope-desc"]');
+    const scopeContext = container.querySelector('[data-role="knowledge-qa-context"]');
+
+    if (!messages || !form || !input) return;
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const initialScope = scopeButtons.find(button => button.classList.contains('btn-primary') || button.classList.contains('active'))?.dataset.scope || 'tenant';
+    const state = {
+        scope: initialScope,
+        pending: false,
+        counters: { tenant: 0, personal: 0 }
+    };
+
+    const syncScopeButtons = () => {
+        scopeButtons.forEach(button => {
+            const isActive = button.dataset.scope === state.scope;
+            button.classList.toggle('btn-primary', isActive);
+            button.classList.toggle('btn-outline-primary', !isActive);
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    };
+
+    const syncScopeMeta = () => {
+        const config = KNOWLEDGE_QA_SCOPE_CONFIG[state.scope];
+        if (scopeLabel && config?.title) {
+            scopeLabel.textContent = config.title;
+        }
+        if (scopeDesc) {
+            scopeDesc.textContent = config?.description || '';
+        }
+        if (scopeContext) {
+            scopeContext.textContent = config?.context || '';
+        }
+    };
+
+    const createMessageElement = (role, text) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = `knowledge-qa-message ${role}`;
+
+        const name = document.createElement('div');
+        name.className = 'name';
+        name.textContent = role === 'user' ? '我' : '知识助手';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = text;
+
+        wrapper.appendChild(name);
+        wrapper.appendChild(bubble);
+        return wrapper;
+    };
+
+    const appendMessage = (role, text) => {
+        messages.appendChild(createMessageElement(role, text));
+        messages.scrollTop = messages.scrollHeight;
+    };
+
+    const clearConversation = () => {
+        messages.innerHTML = '';
+    };
+
+    const showWelcome = () => {
+        const config = KNOWLEDGE_QA_SCOPE_CONFIG[state.scope];
+        if (config?.welcome) {
+            appendMessage('bot', config.welcome);
+        }
+    };
+
+    const setPending = flag => {
+        state.pending = Boolean(flag);
+        input.disabled = state.pending;
+        if (submitBtn) {
+            submitBtn.disabled = state.pending;
+            submitBtn.textContent = state.pending ? '生成中...' : '发送';
+        }
+    };
+
+    const respond = () => {
+        const pool = KNOWLEDGE_QA_PRESET_RESPONSES[state.scope] || [];
+        const key = state.scope;
+        let selected = null;
+
+        if (pool.length > 0) {
+            selected = pool[state.counters[key] % pool.length];
+            state.counters[key] += 1;
+        }
+
+        setPending(true);
+        setTimeout(() => {
+            const reply = selected?.answer || '暂未检索到相关内容，请稍后重试或联系平台管理员。';
+            appendMessage('bot', reply);
+            setPending(false);
+        }, KNOWLEDGE_QA_RESPONSE_DELAY);
+    };
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+        if (state.pending) return;
+
+        const question = input.value.trim();
+        if (!question) {
+            input.focus();
+            return;
+        }
+
+        appendMessage('user', question);
+        input.value = '';
+        input.focus();
+        respond();
+    });
+
+    resetBtn?.addEventListener('click', () => {
+        state.counters[state.scope] = 0;
+        clearConversation();
+        setPending(false);
+        showWelcome();
+    });
+
+    scopeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const scope = button.dataset.scope;
+            if (!scope || scope === state.scope) return;
+            state.scope = scope;
+            state.counters[scope] = 0;
+            syncScopeButtons();
+            syncScopeMeta();
+            clearConversation();
+            setPending(false);
+            showWelcome();
+        });
+    });
+
+    syncScopeButtons();
+    syncScopeMeta();
+    clearConversation();
+    setPending(false);
+    showWelcome();
 }
 
 function initializeRolesTab(container) {
