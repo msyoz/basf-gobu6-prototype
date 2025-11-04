@@ -416,7 +416,6 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <h5 class="mb-1">应用模板管理</h5>
-                    <small class="text-muted">维护 Terraform 模板版本</small>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#templateVersionModal">更新版本</button>
@@ -432,7 +431,7 @@
                             <th>模板名称</th>
                             <th>最新版本</th>
                             <th>最近更新</th>
-                            <th>适用场景</th>
+                            <th>描述</th>
                             <th>维护人</th>
                             <th class="text-end">操作</th>
                         </tr>
@@ -986,8 +985,8 @@ module "sap_s4hana" {
                             <textarea class="form-control" rows="3" placeholder="模板适用场景描述"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Terraform 模块地址</label>
-                            <input type="url" class="form-control" placeholder="https://..." required>
+                            <label class="form-label">上传IaC代码</label>
+                            <input type="file" class="form-control">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1025,7 +1024,7 @@ module "sap_s4hana" {
                             <textarea class="form-control" rows="4" placeholder="描述更新内容"></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">上传变更日志</label>
+                            <label class="form-label">上传变更的IaC代码</label>
                             <input type="file" class="form-control">
                         </div>
                     </div>
