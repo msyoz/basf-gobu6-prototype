@@ -938,6 +938,40 @@ const resourceInventory = [
     }
 ];
 
+const resourceActivityLogs = {
+    'vm-erp-prod-01': [
+        { eventName: '补丁更新完成', status: 'Succeeded', date: '2025-10-10 21:12' },
+        { eventName: '安全基线扫描完成', status: 'Succeeded', date: '2025-10-09 08:30' }
+    ],
+    'db-erp-prod-02': [
+        { eventName: '存储扩容至 512GB', status: 'Succeeded', date: '2025-10-09 10:04' },
+        { eventName: '性能监控基线执行', status: 'Succeeded', date: '2025-10-07 19:20' }
+    ],
+    'aks-esg-cluster': [
+        { eventName: '部署审批通过', status: 'Succeeded', date: '2025-10-11 09:12' },
+        { eventName: '集群部署任务排队', status: 'InProgress', date: '2025-10-11 09:15' }
+    ],
+    'db-esg-analytics': [
+        { eventName: '等待 Terraform Plan 确认', status: 'Pending', date: '2025-10-10 18:44' }
+    ],
+    'aks-ai-cluster': [
+        { eventName: '节点池扩容至 6 台', status: 'Succeeded', date: '2025-10-11 08:22' },
+        { eventName: '集群部署', status: 'InProgress', date: '2025-10-11 08:35' }
+    ],
+    'ds-ai-data-lake': [
+        { eventName: '读写延迟告警', status: 'Failed', date: '2025-10-10 23:02' },
+        { eventName: '恢复热存储', status: 'Succeeded', date: '2025-10-11 00:18' }
+    ],
+    'sql-lims-prod': [
+        { eventName: '自动备份执行', status: 'Succeeded', date: '2025-10-11 02:00' },
+        { eventName: '索引优化计划', status: 'Succeeded', date: '2025-10-10 20:46' }
+    ],
+    'func-lims-automation': [
+        { eventName: '发布新版本 v1.4.2', status: 'Succeeded', date: '2025-10-10 15:48' },
+        { eventName: '批量执行监控', status: 'Succeeded', date: '2025-10-10 22:10' }
+    ]
+};
+
 function createTabId(page) {
     return `tab-${page}`;
 }
@@ -1115,8 +1149,11 @@ function initializeResourcesTab(container, payload = {}) {
     const appSelect = container.querySelector('#resourceAppSelector');
     const tableBody = container.querySelector('#resourceListTable tbody');
     const exportBtn = container.querySelector('[data-action="export-resources"]');
+    const activityList = container.querySelector('[data-role="activity-list"]');
+    const activityTarget = container.querySelector('[data-role="activity-target"]');
+    const activityRefreshBtn = container.querySelector('[data-action="refresh-activity"]');
 
-    if (!tenantSelect || !appSelect || !tableBody) return;
+    if (!tenantSelect || !appSelect || !tableBody || !activityList || !activityTarget) return;
 
     const tenants = Object.keys(tenantApplications);
     const tenantOptions = ['<option value="">请选择租户...</option>'].concat(
@@ -1131,6 +1168,59 @@ function initializeResourcesTab(container, payload = {}) {
         appSelect,
         tableBody,
         exportBtn,
+        activityList,
+        activityTarget,
+        activityRefreshBtn,
+        selectedResource: '',
+        resetActivityPanel() {
+            if (this.activityTarget) {
+                this.activityTarget.textContent = '请选择资源';
+            }
+            if (this.activityList) {
+                this.activityList.innerHTML = '<div class="list-group-item text-muted">请选择资源查看活动日志。</div>';
+            }
+            if (this.activityRefreshBtn) {
+                this.activityRefreshBtn.disabled = true;
+            }
+            this.selectedResource = '';
+        },
+        renderActivity(resourceName) {
+            if (!resourceName || !this.activityList || !this.activityTarget) {
+                this.resetActivityPanel();
+                return;
+            }
+
+            const logs = resourceActivityLogs[resourceName] || [];
+            if (!logs.length) {
+                this.activityList.innerHTML = '<div class="list-group-item text-muted">该资源暂无活动日志。</div>';
+            } else {
+                const statusBadgeMap = {
+                    Succeeded: 'bg-success',
+                    Failed: 'bg-danger',
+                    InProgress: 'bg-warning text-dark',
+                    Pending: 'bg-secondary'
+                };
+                this.activityList.innerHTML = logs
+                    .map(log => {
+                        const badgeClass = statusBadgeMap[log.status] || 'bg-secondary';
+                        return `
+                        <div class="list-group-item d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold">${log.eventName}</div>
+                                <small class="text-muted">${log.date}</small>
+                            </div>
+                            <span class="badge ${badgeClass}">${log.status}</span>
+                        </div>
+                        `;
+                    })
+                    .join('');
+            }
+
+            this.activityTarget.textContent = `资源：${resourceName}`;
+            if (this.activityRefreshBtn) {
+                this.activityRefreshBtn.disabled = false;
+            }
+        },
         updateAppOptions(selectedTenant, preferredApp = '') {
             if (!selectedTenant) {
                 appSelect.innerHTML = '<option value="">全部应用</option>';
@@ -1156,17 +1246,47 @@ function initializeResourcesTab(container, payload = {}) {
                 if (exportBtn) {
                     exportBtn.disabled = true;
                 }
+                this.resetActivityPanel();
                 return;
             }
 
             const resources = getResourcesByFilter(selectedTenant, selectedApp);
             const emptyMessage = selectedApp ? '所选应用暂无资源数据。' : '该租户暂无资源数据。';
-            renderResourceInventory(tableBody, resources, emptyMessage);
+            const hasSelection = resources.some(resource => resource.name === this.selectedResource);
+            if (!hasSelection) {
+                this.selectedResource = '';
+            }
+
+            renderResourceInventory(tableBody, resources, emptyMessage, {
+                selectedResource: this.selectedResource,
+                onSelect: resource => {
+                    this.selectedResource = resource?.name || '';
+                    if (this.selectedResource) {
+                        this.renderActivity(this.selectedResource);
+                    }
+                }
+            });
             if (exportBtn) {
                 exportBtn.disabled = !resources.length;
             }
+
+            if (this.selectedResource) {
+                this.renderActivity(this.selectedResource);
+            } else {
+                this.resetActivityPanel();
+            }
         }
     };
+
+    controls.resetActivityPanel();
+
+    if (activityRefreshBtn) {
+        activityRefreshBtn.addEventListener('click', () => {
+            if (controls.selectedResource) {
+                controls.renderActivity(controls.selectedResource);
+            }
+        });
+        }
 
     tenantSelect.addEventListener('change', () => {
         const selectedTenant = tenantSelect.value;
@@ -1215,11 +1335,11 @@ function getResourcesByFilter(tenant, app) {
     });
 }
 
-function renderResourceInventory(tbody, resources = [], emptyMessage = '暂无资源数据。') {
+function renderResourceInventory(tbody, resources = [], emptyMessage = '暂无资源数据。', options = {}) {
     if (!tbody) return;
 
     if (!resources.length) {
-        tbody.innerHTML = `<tr class="placeholder-row"><td colspan="7" class="text-center text-muted">${emptyMessage}</td></tr>`;
+        tbody.innerHTML = `<tr class="placeholder-row"><td colspan="6" class="text-center text-muted">${emptyMessage}</td></tr>`;
         return;
     }
 
@@ -1231,24 +1351,38 @@ function renderResourceInventory(tbody, resources = [], emptyMessage = '暂无�
         '停止': 'bg-secondary'
     };
 
+    const { onSelect, selectedResource } = options;
+
     const rows = resources
-        .map(resource => {
+        .map((resource, index) => {
             const badgeClass = statusClassMap[resource.status] || 'bg-secondary';
+            const isSelected = selectedResource && selectedResource === resource.name;
             return `
-            <tr>
+            <tr data-resource-index="${index}" data-resource-name="${resource.name}" class="${isSelected ? 'table-active' : ''}">
                 <td>${resource.name}</td>
                 <td>${resource.app}</td>
                 <td>${resource.type}</td>
                 <td>${resource.region || '--'}</td>
                 <td><span class="badge ${badgeClass}">${resource.status}</span></td>
                 <td>${resource.lastActivity || '--'}</td>
-                <td>${resource.cost || '--'}</td>
             </tr>
         `;
         })
         .join('');
 
     tbody.innerHTML = rows;
+
+    if (typeof onSelect === 'function') {
+        const rowsEls = tbody.querySelectorAll('tr[data-resource-index]');
+        rowsEls.forEach(row => {
+            row.addEventListener('click', () => {
+                rowsEls.forEach(other => other.classList.remove('table-active'));
+                row.classList.add('table-active');
+                const idx = Number(row.dataset.resourceIndex);
+                onSelect(resources[idx]);
+            });
+        });
+    }
 }
 
 function renderRoleUsers(tbody, users = []) {
