@@ -1228,6 +1228,32 @@ const resourceActivityLogs = {
     ]
 };
 
+const KNOWLEDGE_PAGE_SIZE = 5;
+
+const KNOWLEDGE_PARSE_STATUS_VARIANTS = {
+    success: { label: '解析成功', className: 'bg-success' },
+    processing: { label: '解析中', className: 'bg-info text-dark' },
+    pending: { label: '等待解析', className: 'bg-secondary' },
+    failed: { label: '解析失败', className: 'bg-danger' }
+};
+
+const KNOWLEDGE_DOCUMENTS = {
+    tenant: [
+        { id: 'tenant-001', name: '平台快速入门指南', uploadedAt: '2025-09-21', enabled: true, parseState: 'success' },
+        { id: 'tenant-002', name: '租户管理最佳实践', uploadedAt: '2025-07-12', enabled: true, parseState: 'success' },
+        { id: 'tenant-003', name: 'Terraform 模板开发规范', uploadedAt: '2025-10-01', enabled: false, parseState: 'processing' },
+        { id: 'tenant-004', name: '安全基线合规手册', uploadedAt: '2025-08-30', enabled: true, parseState: 'pending' },
+        { id: 'tenant-005', name: '成本优化白皮书', uploadedAt: '2025-06-18', enabled: true, parseState: 'success' },
+        { id: 'tenant-006', name: 'DevOps 集成指引', uploadedAt: '2025-05-04', enabled: false, parseState: 'failed' }
+    ],
+    personal: [
+        { id: 'personal-001', name: '个人操作手册', uploadedAt: '2025-09-05', enabled: true, parseState: 'success' },
+        { id: 'personal-002', name: '常见问题笔记', uploadedAt: '2025-08-11', enabled: true, parseState: 'processing' },
+        { id: 'personal-003', name: '数据模型草稿', uploadedAt: '2025-07-22', enabled: false, parseState: 'pending' },
+        { id: 'personal-004', name: '脚本片段整理', uploadedAt: '2025-04-09', enabled: true, parseState: 'failed' }
+    ]
+};
+
 function createTabId(page) {
     return `tab-${page}`;
 }
@@ -1301,6 +1327,8 @@ function openTab(page, title, payload = {}) {
         initializeRolesTab(tabPane);
     } else if (page === 'resources') {
         initializeResourcesTab(tabPane, payload);
+    } else if (page === 'knowledge') {
+        initializeKnowledgeTab(tabPane);
     }
 }
 
@@ -1733,6 +1761,165 @@ function renderTenantUsersTable(tbody, tenantName) {
             </tr>
         `)
         .join('');
+}
+
+function buildKnowledgeEnabledBadge(enabled) {
+    const isEnabled = Boolean(enabled);
+    const label = isEnabled ? '启用' : '停用';
+    const variant = isEnabled ? 'bg-success' : 'bg-secondary';
+    return `<span class="badge ${variant}">${label}</span>`;
+}
+
+function buildKnowledgeParseBadge(state) {
+    const variant = KNOWLEDGE_PARSE_STATUS_VARIANTS[state] || KNOWLEDGE_PARSE_STATUS_VARIANTS.pending;
+    return `<span class="badge ${variant.className}">${variant.label}</span>`;
+}
+
+function renderKnowledgeRows(tbody, documents, totalCount) {
+    if (!tbody) return;
+
+    if (!totalCount) {
+        tbody.innerHTML = '<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">当前视图暂无文档</td></tr>';
+        return;
+    }
+
+    if (!documents || documents.length === 0) {
+        tbody.innerHTML = '<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">当前页暂无文档</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = documents
+        .map(doc => `
+            <tr data-document-id="${doc.id}">
+                <td>${doc.name || '--'}</td>
+                <td>${doc.uploadedAt || '--'}</td>
+                <td>${buildKnowledgeEnabledBadge(doc.enabled)}</td>
+                <td>${buildKnowledgeParseBadge(doc.parseState)}</td>
+            </tr>
+        `)
+        .join('');
+}
+
+function renderKnowledgePagination(listElement, containerElement, totalItems, currentPage) {
+    if (!listElement) return;
+
+    const totalPages = Math.ceil(totalItems / KNOWLEDGE_PAGE_SIZE);
+
+    if (totalPages <= 1) {
+        listElement.innerHTML = '';
+        if (containerElement) containerElement.classList.add('d-none');
+        return;
+    }
+
+    if (containerElement) containerElement.classList.remove('d-none');
+    listElement.innerHTML = '';
+
+    const createPageItem = (label, value, { disabled = false, active = false } = {}) => {
+        const item = document.createElement('li');
+        item.className = 'page-item';
+        if (disabled) item.classList.add('disabled');
+        if (active) item.classList.add('active');
+
+        const link = document.createElement('a');
+        link.className = 'page-link';
+        link.href = '#';
+        link.dataset.page = value;
+        link.textContent = label;
+
+        item.appendChild(link);
+        return item;
+    };
+
+    listElement.appendChild(createPageItem('上一页', 'prev', { disabled: currentPage === 1 }));
+
+    for (let page = 1; page <= totalPages; page += 1) {
+        listElement.appendChild(createPageItem(String(page), String(page), { active: page === currentPage }));
+    }
+
+    listElement.appendChild(createPageItem('下一页', 'next', { disabled: currentPage === totalPages }));
+}
+
+function initializeKnowledgeTab(container) {
+    const scopeToggle = container.querySelector('[data-role="knowledge-scope-toggle"]');
+    const scopeButtons = scopeToggle ? Array.from(scopeToggle.querySelectorAll('[data-scope]')) : [];
+    const tableBody = container.querySelector('[data-role="knowledge-table-body"]');
+    const paginationList = container.querySelector('[data-role="knowledge-pagination"]');
+    const paginationContainer = container.querySelector('[data-role="knowledge-pagination-container"]');
+
+    if (!tableBody || !paginationList) return;
+
+    let currentScope = scopeButtons.find(button => button.classList.contains('btn-primary') || button.classList.contains('active'))?.dataset.scope || 'tenant';
+    let currentPage = 1;
+
+    const getDocumentsByScope = scope => {
+        const documents = KNOWLEDGE_DOCUMENTS[scope];
+        return Array.isArray(documents) ? documents : [];
+    };
+
+    const syncScopeButtons = () => {
+        scopeButtons.forEach(button => {
+            const isActive = button.dataset.scope === currentScope;
+            button.classList.toggle('btn-primary', isActive);
+            button.classList.toggle('btn-outline-primary', !isActive);
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    };
+
+    const render = () => {
+        const documents = getDocumentsByScope(currentScope);
+        const total = documents.length;
+        const totalPages = Math.max(1, Math.ceil(total / KNOWLEDGE_PAGE_SIZE));
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        const startIndex = (currentPage - 1) * KNOWLEDGE_PAGE_SIZE;
+        const pageItems = documents.slice(startIndex, startIndex + KNOWLEDGE_PAGE_SIZE);
+
+        renderKnowledgeRows(tableBody, pageItems, total);
+        renderKnowledgePagination(paginationList, paginationContainer, total, currentPage);
+    };
+
+    scopeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const scope = button.dataset.scope;
+            if (!scope || scope === currentScope) return;
+            currentScope = scope;
+            currentPage = 1;
+            syncScopeButtons();
+            render();
+        });
+    });
+
+    paginationList.addEventListener('click', event => {
+        const control = event.target.closest('[data-page]');
+        if (!control) return;
+        event.preventDefault();
+
+        const parentItem = control.parentElement;
+        if (parentItem?.classList.contains('disabled') || parentItem?.classList.contains('active')) return;
+
+        const documents = getDocumentsByScope(currentScope);
+        const totalPages = Math.max(1, Math.ceil(documents.length / KNOWLEDGE_PAGE_SIZE));
+        const value = control.dataset.page;
+
+        if (value === 'prev') {
+            currentPage = Math.max(1, currentPage - 1);
+        } else if (value === 'next') {
+            currentPage = Math.min(totalPages, currentPage + 1);
+        } else {
+            const pageNumber = Number(value);
+            if (!Number.isInteger(pageNumber)) return;
+            currentPage = Math.min(totalPages, Math.max(1, pageNumber));
+        }
+
+        render();
+    });
+
+    syncScopeButtons();
+    render();
 }
 
 function initializeRolesTab(container) {
