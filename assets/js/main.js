@@ -1046,6 +1046,14 @@ const roleAssignments = {
             { name: 'Luo Bin', email: 'luobin@biocloud.cn', tenant: 'ED-default' }
         ]
     },
+    'Tenant App Requesters': {
+        description: '租户应用申请者，可以为所在租户申请新应用',
+        users: [
+            { name: 'Chen Yu', email: 'chenyu@RG-default.cn', tenant: 'RG-default' },
+            { name: 'Gao Ling', email: 'gaoling@EV-default.cn', tenant: 'EV-default' },
+            { name: 'Luo Bin', email: 'luobin@biocloud.cn', tenant: 'ED-default' }
+        ]
+    },
     'Tenant Users': {
         description: '租户使用者，可以访问所在租户的应用，包括知识库问答',
         users: [
@@ -1057,18 +1065,18 @@ const roleAssignments = {
     }
 };
 
-const tenantUserRoles = ['租户所有者', '租户使用者'];
+const tenantUserRoles = ['租户应用申请者', '租户使用者'];
 const tenantUsersDirectory = {
     'RG-default': [
-        { name: 'Chen Yu', email: 'chenyu@RG-default.cn', role: '租户所有者' },
+        { name: 'Chen Yu', email: 'chenyu@RG-default.cn', role: '租户应用申请者' },
         { name: 'Sun Tao', email: 'suntao@RG-default.cn', role: '租户使用者' }
     ],
     'EV-default': [
-        { name: 'Gao Ling', email: 'gaoling@EV-default.cn', role: '租户所有者' },
+        { name: 'Gao Ling', email: 'gaoling@EV-default.cn', role: '租户应用申请者' },
         { name: 'Ma Rui', email: 'marui@EV-default.cn', role: '租户使用者' }
     ],
     'ED-default': [
-        { name: 'Luo Bin', email: 'luobin@biocloud.cn', role: '租户所有者' },
+        { name: 'Luo Bin', email: 'luobin@biocloud.cn', role: '租户应用申请者' },
         { name: 'He Na', email: 'hena@biocloud.cn', role: '租户使用者' }
     ]
 };
