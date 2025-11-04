@@ -293,29 +293,18 @@ body {
     background: rgba(47, 87, 211, 0.04);
 }
 
-.parameter-panel {
+.parameter-panel,
+.resource-panel {
     background: #fff;
 }
 
-.parameter-panel .table {
+.parameter-panel .table,
+.resource-panel .table {
     margin-bottom: 0;
 }
 
-.parameter-empty {
-    border-top: 1px dashed rgba(31, 42, 68, 0.1);
-    border-radius: 0 0 0.75rem 0.75rem;
-    background: rgba(47, 87, 211, 0.03);
-}
-
-.parameter-panel {
-    background: #fff;
-}
-
-.parameter-panel .table {
-    margin-bottom: 0;
-}
-
-.parameter-empty {
+.parameter-empty,
+.resource-empty {
     border-top: 1px dashed rgba(31, 42, 68, 0.1);
     border-radius: 0 0 0.75rem 0.75rem;
     background: rgba(47, 87, 211, 0.03);

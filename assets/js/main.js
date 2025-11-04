@@ -760,6 +760,261 @@ function setupParameterPanel(modalElement) {
     };
 }
 
+function setupResourcePanel(modalElement) {
+    if (!modalElement) return null;
+
+    const table = modalElement.querySelector('[data-role="resource-table"]');
+    const tableBody = modalElement.querySelector('[data-role="resource-body"]');
+    const emptyState = modalElement.querySelector('[data-role="resource-empty"]');
+    const hint = modalElement.querySelector('[data-role="resource-hint"]');
+    const addBtn = modalElement.querySelector('[data-action="add-resource-row"]');
+
+    if (!tableBody || !addBtn) return null;
+
+    const state = {
+        tenant: '',
+        app: '',
+        resources: []
+    };
+
+    const normalizeToneClass = tone => {
+        switch (tone) {
+            case 'warning':
+                return 'text-warning';
+            case 'danger':
+                return 'text-danger';
+            case 'success':
+                return 'text-success';
+            default:
+                return 'text-muted';
+        }
+    };
+
+    const setHint = (message, tone = 'muted') => {
+        if (!hint) return;
+        hint.textContent = message;
+        hint.classList.remove('text-muted', 'text-warning', 'text-danger', 'text-success');
+        hint.classList.add(normalizeToneClass(tone));
+    };
+
+    const updateEmptyState = () => {
+        const hasRows = tableBody.querySelectorAll('tr[data-index]').length > 0;
+        table?.classList.toggle('d-none', !hasRows);
+        emptyState?.classList.toggle('d-none', hasRows);
+    };
+
+    const captureCurrentState = () => {
+        const rows = Array.from(tableBody.querySelectorAll('tr[data-index]'));
+        if (!rows.length) {
+            state.resources = [];
+            return;
+        }
+
+        state.resources = rows.map(row => {
+            const nameInput = row.querySelector('input[name="resourceName[]"]');
+            const typeInput = row.querySelector('input[name="resourceType[]"]');
+            const regionInput = row.querySelector('input[name="resourceRegion[]"]');
+            return {
+                tenant: state.tenant,
+                app: state.app,
+                name: nameInput?.value.trim() || '',
+                type: typeInput?.value.trim() || '',
+                region: regionInput?.value.trim() || '',
+                status: row.dataset.status || '待创建',
+                lastActivity: row.dataset.lastActivity || '--',
+                cost: row.dataset.cost || '预估 --',
+                mode: row.dataset.mode || 'existing'
+            };
+        });
+    };
+
+    const buildRow = (resource, index) => {
+        const row = document.createElement('tr');
+        row.dataset.index = index;
+        row.dataset.status = resource.status || '待创建';
+        row.dataset.lastActivity = resource.lastActivity || '--';
+        row.dataset.cost = resource.cost || '预估 --';
+        row.dataset.mode = resource.mode || 'existing';
+
+        row.innerHTML = `
+            <td>
+                <input type="text" class="form-control form-control-sm" name="resourceName[]" value="${resource.name || ''}" placeholder="例如 vm-app-01">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" name="resourceType[]" value="${resource.type || ''}" placeholder="例如 虚拟机">
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" name="resourceRegion[]" value="${resource.region || ''}" placeholder="例如 China North 3">
+            </td>
+            <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-danger" data-action="remove-resource">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+
+        return row;
+    };
+
+    const render = () => {
+        tableBody.innerHTML = '';
+        state.resources.forEach((resource, index) => {
+            const row = buildRow(resource, index);
+            tableBody.appendChild(row);
+        });
+        updateEmptyState();
+    };
+
+    const addResource = () => {
+        captureCurrentState();
+        state.resources.push({
+            tenant: state.tenant,
+            app: state.app,
+            name: '',
+            type: '',
+            region: '',
+            status: '待创建',
+            lastActivity: '--',
+            cost: '预估 --',
+            mode: 'new'
+        });
+        render();
+        const newestNameInput = tableBody.querySelector('tr:last-child input[name="resourceName[]"]');
+        newestNameInput?.focus();
+        setHint('新增资源请填写名称、类型与区域。', 'muted');
+    };
+
+    const removeResource = index => {
+        captureCurrentState();
+        if (index < 0 || index >= state.resources.length) return;
+        state.resources.splice(index, 1);
+        render();
+        setHint('已从本次申请中移除资源。', 'muted');
+    };
+
+    const validate = () => {
+        captureCurrentState();
+        tableBody.querySelectorAll('input.is-invalid').forEach(input => input.classList.remove('is-invalid'));
+
+        if (state.resources.length === 0) {
+            return { valid: true, focus: null };
+        }
+
+        let firstInvalid = null;
+
+        state.resources.forEach((resource, index) => {
+            const row = tableBody.querySelector(`tr[data-index="${index}"]`);
+            if (!row) return;
+
+            const ensureField = (value, selector) => {
+                if (value) return;
+                const input = row.querySelector(selector);
+                if (input) {
+                    input.classList.add('is-invalid');
+                    if (!firstInvalid) {
+                        firstInvalid = input;
+                    }
+                }
+            };
+
+            ensureField(resource.name, 'input[name="resourceName[]"]');
+            ensureField(resource.type, 'input[name="resourceType[]"]');
+        });
+
+        return {
+            valid: !firstInvalid,
+            focus: firstInvalid
+        };
+    };
+
+    const getResources = () => {
+        captureCurrentState();
+        return state.resources.map(resource => ({
+            tenant: resource.tenant || state.tenant,
+            app: resource.app || state.app,
+            name: resource.name,
+            type: resource.type,
+            region: resource.region,
+            status: resource.status || '待创建',
+            lastActivity: resource.lastActivity || '--',
+            cost: resource.cost || '预估 --'
+        }));
+    };
+
+    const clear = () => {
+        state.tenant = '';
+        state.app = '';
+        state.resources = [];
+        render();
+        addBtn.disabled = true;
+        setHint('请选择应用以查看资源。', 'muted');
+    };
+
+    const setContext = ({ resources = [], tenant = '', app = '' } = {}) => {
+        state.tenant = tenant;
+        state.app = app;
+        state.resources = resources.map(resource => ({
+            tenant: resource.tenant || tenant,
+            app: resource.app || app,
+            name: resource.name || '',
+            type: resource.type || '',
+            region: resource.region || '',
+            status: resource.status || '待创建',
+            lastActivity: resource.lastActivity || '--',
+            cost: resource.cost || '预估 --',
+            mode: 'existing'
+        }));
+
+        addBtn.disabled = !app;
+        render();
+
+        if (!app) {
+            setHint('请选择应用以查看资源。', 'muted');
+        } else if (state.resources.length === 0) {
+            setHint('该应用当前未登记资源，可添加新的资源项。', 'muted');
+        } else {
+            setHint('可以更新资源信息，或添加/删除资源。', 'muted');
+        }
+    };
+
+    addBtn.addEventListener('click', () => {
+        if (!state.app) {
+            setHint('请选择应用后再添加资源。', 'warning');
+            return;
+        }
+        addResource();
+    });
+
+    tableBody.addEventListener('click', event => {
+        const removeBtn = event.target.closest('[data-action="remove-resource"]');
+        if (!removeBtn) return;
+        const row = removeBtn.closest('tr');
+        const index = Number(row?.dataset.index);
+        if (!Number.isNaN(index)) {
+            removeResource(index);
+        }
+    });
+
+    tableBody.addEventListener('input', event => {
+        const input = event.target;
+        if (!(input instanceof HTMLInputElement)) return;
+        if (input.classList.contains('is-invalid')) {
+            input.classList.remove('is-invalid');
+        }
+    });
+
+    clear();
+
+    return {
+        setContext,
+        clear,
+        getResources,
+        validate,
+        setHint,
+        updateEmptyState
+    };
+}
+
 const roleAssignments = {
     'Platform Admins': {
         description: '平台管理员，具备最高的权限',
@@ -1335,6 +1590,50 @@ function getResourcesByFilter(tenant, app) {
     });
 }
 
+function updateResourceInventoryForApp(appName, tenant, resources = []) {
+    if (!appName) return;
+
+    const previousNames = resourceInventory
+        .filter(resource => resource.app === appName)
+        .map(resource => resource.name);
+
+    for (let idx = resourceInventory.length - 1; idx >= 0; idx -= 1) {
+        if (resourceInventory[idx].app === appName) {
+            resourceInventory.splice(idx, 1);
+        }
+    }
+
+    const normalizedResources = (Array.isArray(resources) ? resources : []).map(resource => ({
+        tenant: resource.tenant || tenant,
+        app: resource.app || appName,
+        name: resource.name,
+        type: resource.type,
+        region: resource.region || '',
+        status: resource.status || '待创建',
+        lastActivity: resource.lastActivity || '--',
+        cost: resource.cost || '预估 --'
+    })).filter(resource => resource.name && resource.type);
+
+    normalizedResources.forEach(resource => {
+        resourceInventory.push(resource);
+    });
+
+    const updatedNames = normalizedResources.map(resource => resource.name);
+    const removedNames = previousNames.filter(name => !updatedNames.includes(name));
+
+    removedNames.forEach(name => {
+        if (resourceActivityLogs[name]) {
+            delete resourceActivityLogs[name];
+        }
+    });
+
+    normalizedResources.forEach(resource => {
+        if (!resourceActivityLogs[resource.name]) {
+            resourceActivityLogs[resource.name] = [];
+        }
+    });
+}
+
 function renderResourceInventory(tbody, resources = [], emptyMessage = '暂无资源数据。', options = {}) {
     if (!tbody) return;
 
@@ -1557,8 +1856,9 @@ function initAppEditModal() {
     const templateIdInput = modalElement.querySelector('[data-role="app-edit-template-id"]');
     const appNameInput = modalElement.querySelector('[data-role="app-edit-name"]');
     const parameterPanel = setupParameterPanel(modalElement);
+    const resourcePanel = setupResourcePanel(modalElement);
 
-    if (!form || !appSelect || !parameterPanel) return;
+    if (!form || !appSelect || !parameterPanel || !resourcePanel) return;
 
     const populateOptions = () => {
         appSelect.innerHTML = '<option value="">请选择应用...</option>';
@@ -1577,6 +1877,7 @@ function initAppEditModal() {
         if (appNameInput) appNameInput.value = '';
         parameterPanel.clear();
         parameterPanel.setHint('请选择应用以加载部署参数。', 'muted');
+        resourcePanel.clear();
     };
 
     const applyDeployment = deployment => {
@@ -1597,8 +1898,15 @@ function initAppEditModal() {
         if (parameters.length === 0) {
             parameterPanel.setHint('当前模板无需额外参数。', 'warning');
         } else {
-            parameterPanel.setHint('该操作仅调整部署参数。', 'muted');
+            parameterPanel.setHint('可调整部署参数的值。', 'muted');
         }
+
+        const resources = getResourcesByFilter(deployment.tenant, deployment.name);
+        resourcePanel.setContext({
+            resources,
+            tenant: deployment.tenant,
+            app: deployment.name
+        });
     };
 
     appSelect.addEventListener('change', event => {
@@ -1614,6 +1922,7 @@ function initAppEditModal() {
     modalElement.addEventListener('hidden.bs.modal', () => {
         parameterPanel.clear();
         parameterPanel.setHint('请选择应用以加载部署参数。', 'muted');
+        resourcePanel.clear();
     });
 
     form.addEventListener('submit', event => {
@@ -1621,6 +1930,20 @@ function initAppEditModal() {
         if (!appSelect.value) {
             appSelect.focus();
             return;
+        }
+
+        const validation = resourcePanel.validate();
+        if (!validation.valid) {
+            resourcePanel.setHint('资源名称与类型为必填项。', 'warning');
+            validation.focus?.focus();
+            return;
+        }
+
+        const deployment = APPLICATION_DEPLOYMENTS[appSelect.value];
+        if (deployment) {
+            const resources = resourcePanel.getResources();
+            updateResourceInventoryForApp(deployment.name, deployment.tenant, resources);
+            applyResourceFilters(deployment.tenant, deployment.name);
         }
         if (typeof bootstrap !== 'undefined') {
             const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);

@@ -782,7 +782,7 @@
                             <input type="hidden" name="appName" data-role="app-edit-name">
                         </div>
                         <div class="col-12">
-                            <div class="alert alert-info small mb-0">仅支持更新部署参数，应用基础信息保持不变。</div>
+                            <div class="alert alert-info small mb-0">支持更新部署参数，并可在本次申请中新增或移除关联资源。应用基础信息保持不变。</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">部署参数</label>
@@ -805,6 +805,33 @@
                                 </div>
                             </div>
                             <small class="text-muted" data-role="parameter-hint">请选择应用以加载部署参数。</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label d-flex justify-content-between align-items-center">
+                                <span>关联资源</span>
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-action="add-resource-row">
+                                    <i class="bi bi-plus-lg me-1"></i>新增资源
+                                </button>
+                            </label>
+                            <div class="border rounded-3 mb-2 resource-panel" data-role="resource-panel">
+                                <div class="table-responsive mb-0">
+                                    <table class="table table-sm align-middle mb-0" data-role="resource-table">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>资源名称</th>
+                                                <th>资源类型</th>
+                                                <th>区域</th>
+                                                <th class="text-end">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody data-role="resource-body"></tbody>
+                                    </table>
+                                </div>
+                                <div class="resource-empty text-center text-muted" data-role="resource-empty">
+                                    <div class="py-4">请选择应用以加载资源。</div>
+                                </div>
+                            </div>
+                            <small class="text-muted" data-role="resource-hint">请选择应用以查看资源。</small>
                         </div>
                     </div>
                     <div class="modal-footer">
