@@ -287,7 +287,7 @@
                 </div>
             </div>
             <div class="row flex-grow-1 g-3">
-                <div class="col-lg-7 d-flex flex-column">
+                <div class="col-12 d-flex flex-column">
                     <div class="table-responsive flex-grow-1">
                         <table class="table table-hover align-middle" id="applicationsTable">
                             <thead>
@@ -346,59 +346,35 @@
                         </table>
                     </div>
                 </div>
-                <div class="col-lg-5 d-flex flex-column">
-                    <div class="card flex-grow-1">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-0">云资源</h6>
-                                <small class="text-muted" id="resourceAppLabel">请选择应用查看资源</small>
-                            </div>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resourceActivityModal">活动日志</button>
-                            </div>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-sm align-middle mb-0" id="resourceTable">
-                                <thead>
-                                    <tr>
-                                        <th>资源名称</th>
-                                        <th>类型</th>
-                                        <th>运行状态</th>
-                                        <th>预估成本</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr class="placeholder-row">
-                                        <td colspan="4" class="text-center text-muted">选择一个应用以加载资源...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
     </template>
 
     <template id="page-resources">
         <section class="p-4 h-100 d-flex flex-column">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
                 <div>
                     <h5 class="mb-1">云资源总览</h5>
                     <small class="text-muted">跨租户可见的资源列表与运行状态</small>
                 </div>
-                <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm w-auto">
-                        <option>全部租户</option>
-                        <option>RG-default</option>
-                        <option>EV-default</option>
-                        <option>ED-default</option>
-                    </select>
-                    <button class="btn btn-outline-secondary btn-sm">导出</button>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="input-group input-group-sm" style="min-width: 220px;">
+                        <span class="input-group-text">租户</span>
+                        <select class="form-select" id="resourceTenantSelector">
+                            <option value="">请选择租户...</option>
+                        </select>
+                    </div>
+                    <div class="input-group input-group-sm" style="min-width: 240px;">
+                        <span class="input-group-text">应用</span>
+                        <select class="form-select" id="resourceAppSelector" disabled>
+                            <option value="">全部应用</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-outline-secondary btn-sm" data-action="export-resources" disabled>导出</button>
                 </div>
             </div>
             <div class="table-responsive flex-grow-1">
-                <table class="table table-striped align-middle">
+                <table class="table table-striped align-middle" id="resourceListTable">
                     <thead>
                         <tr>
                             <th>资源名称</th>
@@ -411,32 +387,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>vm-erp-prod-01</td>
-                            <td>RG-default ERP</td>
-                            <td>虚拟机</td>
-                            <td>China North 3</td>
-                            <td><span class="badge bg-success">运行</span></td>
-                            <td>12 分钟前</td>
-                            <td>--</td>
-                        </tr>
-                        <tr>
-                            <td>ds-ai-data-lake</td>
-                            <td>Agri AI Insights</td>
-                            <td>Data Lake</td>
-                            <td>China East 2</td>
-                            <td><span class="badge bg-warning text-dark">警告</span></td>
-                            <td>45 分钟前</td>
-                            <td>--</td>
-                        </tr>
-                        <tr>
-                            <td>func-lims-automation</td>
-                            <td>BioCloud LIMS</td>
-                            <td>函数应用</td>
-                            <td>China East 3</td>
-                            <td><span class="badge bg-success">运行</span></td>
-                            <td>6 分钟前</td>
-                            <td>--</td>
+                        <tr class="placeholder-row" data-role="resource-placeholder">
+                            <td colspan="7" class="text-center text-muted">请选择租户以加载资源。</td>
                         </tr>
                     </tbody>
                 </table>

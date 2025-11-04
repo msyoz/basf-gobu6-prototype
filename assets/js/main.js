@@ -36,52 +36,6 @@ const APPLICATION_STATUS_BADGES = {
     rejected: { label: '已拒绝', className: 'badge bg-danger' }
 };
 
-const APPLICATION_RESOURCE_CONTEXT = {
-    created: {
-        labelSuffix: '的资源',
-        showProjectedCost: false,
-        emptyMessage: '暂无资源信息',
-        infoRowMessage: '',
-        infoRowVariant: 'table-info',
-        infoRowTextClass: 'text-muted'
-    },
-    pending: {
-        labelSuffix: '的拟创建资源',
-        showProjectedCost: true,
-        emptyMessage: '审批通过后将创建资源清单。',
-        infoRowMessage: '以下资源将在审批通过后自动创建。',
-        infoRowVariant: 'table-info',
-        infoRowTextClass: 'text-muted'
-    },
-    approved: {
-        labelSuffix: '的待创建资源',
-        showProjectedCost: true,
-        emptyMessage: '审批已完成，资源创建流程即将启动。',
-        infoRowMessage: '审批已完成，资源创建流程即将启动。',
-        infoRowVariant: 'table-info',
-        infoRowTextClass: 'text-muted'
-    },
-    creating: {
-        labelSuffix: '的正在创建资源',
-        showProjectedCost: false,
-        emptyMessage: '资源创建过程中，请稍候刷新查看状态。',
-        infoRowMessage: '资源正在创建，请稍候刷新查看状态。',
-        infoRowVariant: 'table-warning',
-        infoRowTextClass: 'text-dark'
-    },
-    rejected: {
-        labelSuffix: '的资源',
-        showProjectedCost: false,
-        forceEmptyMessage: '审批未通过，资源未创建。'
-    }
-};
-
-function resolveApplicationResourceContext(status) {
-    const baseContext = APPLICATION_RESOURCE_CONTEXT.created;
-    const specificContext = APPLICATION_RESOURCE_CONTEXT[status];
-    return specificContext ? { ...baseContext, ...specificContext } : baseContext;
-}
-
 let approvalModalElements = null;
 let approvalModalInstance = null;
 
@@ -416,31 +370,6 @@ function resetApprovalModal() {
         approvalModalElements.rejectBtn.textContent = '拒绝';
     }
 }
-
-const appResources = {
-    'RG-default ERP': [
-        { name: 'vm-erp-prod-01', type: '虚拟机', status: '运行', cost: '¥ 3,120' },
-        { name: 'db-erp-prod-02', type: '数据库', status: '运行', cost: '¥ 5,680' },
-        { name: 'storage-erp-archive', type: '存储', status: '待机', cost: '¥ 1,240' },
-        { name: 'redis-erp-cache', type: '缓存', status: '运行', cost: '¥ 960' }
-    ],
-    'Agri AI Insights': [
-        { name: 'aks-ai-cluster', type: '容器服务', status: '部署中', cost: '¥ 7,410' },
-        { name: 'ds-ai-data-lake', type: 'Data Lake', status: '警告', cost: '¥ 4,560' },
-        { name: 'func-ai-event', type: '函数', status: '运行', cost: '¥ 860' }
-    ],
-    'RG-default ESG Portal': [
-        { name: 'rg-RG-default-esg', type: '资源组', status: '待创建', cost: '预估 ¥ 0' },
-        { name: 'aks-esg-cluster', type: '容器服务', status: '待创建', cost: '预估 ¥ 9,500' },
-        { name: 'db-esg-analytics', type: '数据库', status: '待创建', cost: '预估 ¥ 6,800' },
-        { name: 'app-esg-api', type: '应用服务', status: '待创建', cost: '预估 ¥ 2,600' }
-    ],
-    'BioCloud LIMS': [
-        { name: 'vm-lims-prod-01', type: '虚拟机', status: '运行', cost: '¥ 2,980' },
-        { name: 'sql-lims-prod', type: '数据库', status: '运行', cost: '¥ 6,340' },
-        { name: 'func-lims-automation', type: '函数', status: '运行', cost: '¥ 1,240' }
-    ]
-};
 
 const APP_TEMPLATE_PARAMETERS = {
     'sap-s4hana': [
@@ -911,6 +840,104 @@ const tenantUserGroups = {
     ]
 };
 
+const appTenantMap = {
+    'RG-default ERP': 'RG-default',
+    'Agri AI Insights': 'EV-default',
+    'RG-default ESG Portal': 'RG-default',
+    'BioCloud LIMS': 'ED-default'
+};
+
+const tenantApplications = Object.entries(appTenantMap).reduce((acc, [app, tenant]) => {
+    if (!acc[tenant]) {
+        acc[tenant] = [];
+    }
+    acc[tenant].push(app);
+    return acc;
+}, {});
+
+const resourceInventory = [
+    {
+        tenant: 'RG-default',
+        app: 'RG-default ERP',
+        name: 'vm-erp-prod-01',
+        type: '虚拟机',
+        region: 'China North 3',
+        status: '运行',
+        lastActivity: '12 分钟前',
+        cost: '¥ 3,120'
+    },
+    {
+        tenant: 'RG-default',
+        app: 'RG-default ERP',
+        name: 'db-erp-prod-02',
+        type: '数据库',
+        region: 'China North 3',
+        status: '运行',
+        lastActivity: '18 分钟前',
+        cost: '¥ 5,680'
+    },
+    {
+        tenant: 'RG-default',
+        app: 'RG-default ESG Portal',
+        name: 'aks-esg-cluster',
+        type: '容器服务',
+        region: 'China North 3',
+        status: '待创建',
+        lastActivity: '--',
+        cost: '预估 ¥ 9,500'
+    },
+    {
+        tenant: 'RG-default',
+        app: 'RG-default ESG Portal',
+        name: 'db-esg-analytics',
+        type: '数据库',
+        region: 'China North 3',
+        status: '待创建',
+        lastActivity: '--',
+        cost: '预估 ¥ 6,800'
+    },
+    {
+        tenant: 'EV-default',
+        app: 'Agri AI Insights',
+        name: 'aks-ai-cluster',
+        type: '容器服务',
+        region: 'China East 2',
+        status: '部署中',
+        lastActivity: '5 分钟前',
+        cost: '¥ 7,410'
+    },
+    {
+        tenant: 'EV-default',
+        app: 'Agri AI Insights',
+        name: 'ds-ai-data-lake',
+        type: 'Data Lake',
+        region: 'China East 2',
+        status: '警告',
+        lastActivity: '45 分钟前',
+        cost: '¥ 4,560'
+    },
+    {
+        tenant: 'ED-default',
+        app: 'BioCloud LIMS',
+        name: 'sql-lims-prod',
+        type: '数据库',
+        region: 'China East 3',
+        status: '运行',
+        lastActivity: '9 分钟前',
+        cost: '¥ 6,340'
+    },
+    {
+        tenant: 'ED-default',
+        app: 'BioCloud LIMS',
+        name: 'func-lims-automation',
+        type: '函数应用',
+        region: 'China East 3',
+        status: '运行',
+        lastActivity: '6 分钟前',
+        cost: '¥ 1,240'
+    }
+];
+
 function createTabId(page) {
     return `tab-${page}`;
 }
@@ -930,8 +957,10 @@ function openTab(page, title, payload = {}) {
         const tabTrigger = bootstrap.Tab.getOrCreateInstance(existingTab);
         tabTrigger.show();
         setActiveNav(page);
-        if (page === 'applications' && payload.tenant) {
-            setTimeout(() => selectTenantInApplications(payload.tenant, payload.app), 150);
+        if (page === 'applications' && (payload.tenant || payload.app)) {
+            setTimeout(() => selectTenantInApplications(payload.tenant || '', payload.app || ''), 150);
+        } else if (page === 'resources' && (payload.tenant || payload.app)) {
+            setTimeout(() => applyResourceFilters(payload.tenant || '', payload.app || ''), 150);
         }
         return;
     }
@@ -980,36 +1009,24 @@ function openTab(page, title, payload = {}) {
         initializeApplicationsTab(tabPane, payload);
     } else if (page === 'roles') {
         initializeRolesTab(tabPane);
+    } else if (page === 'resources') {
+        initializeResourcesTab(tabPane, payload);
     }
 }
 
-function initializeApplicationsTab(container, payload) {
+function initializeApplicationsTab(container, payload = {}) {
     initializeApprovalModal();
 
     const tenantSelector = container.querySelector(`#${applicationTenantSelectorTemplateId}`);
     const appRows = container.querySelectorAll('#applicationsTable tbody tr');
-    const resourceTableBody = container.querySelector('#resourceTable tbody');
-    const resourceLabel = container.querySelector('#resourceAppLabel');
 
-    if (!tenantSelector || !resourceTableBody) return;
-
-    tenantSelector.addEventListener('change', () => {
-        resourceTableBody.innerHTML = '<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">选择一个应用以加载资源...</td></tr>';
-        resourceLabel.textContent = tenantSelector.value ? `${tenantSelector.value} - 已加载应用` : '请选择应用查看资源';
-    });
+    if (tenantSelector) {
+        tenantSelector.addEventListener('change', () => {
+            filterApplicationsTable(container, tenantSelector.value);
+        });
+    }
 
     appRows.forEach(row => {
-        row.addEventListener('click', event => {
-            if (event.target.closest('button')) return;
-            const appName = row.dataset.app;
-            if (!appName) return;
-            const status = row.dataset.status || '';
-            const context = resolveApplicationResourceContext(status);
-            const suffix = context.labelSuffix || '的资源';
-            resourceLabel.textContent = `${appName}${suffix}`;
-            renderResourceTable(resourceTableBody, appResources[appName], context);
-        });
-
         const approveBtn = row.querySelector('[data-action="approve-app"]');
         if (approveBtn) {
             approveBtn.addEventListener('click', event => {
@@ -1022,16 +1039,19 @@ function initializeApplicationsTab(container, payload) {
         syncApplicationRowActions(row);
     });
 
-    if (payload.tenant) {
+    const initialTenant = payload.tenant || tenantSelector?.value || '';
+    if (tenantSelector && payload.tenant) {
         tenantSelector.value = payload.tenant;
-        resourceLabel.textContent = `${payload.tenant} - 已加载应用`;
     }
 
+    filterApplicationsTable(container, initialTenant);
+
     if (payload.app) {
-        const targetRow = Array.from(appRows).find(row => row.dataset.app === payload.app);
+        const targetRow = container.querySelector(`#applicationsTable tbody tr[data-app="${payload.app}"]`);
         if (targetRow) {
-            targetRow.click();
+            targetRow.classList.add('table-active');
             targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => targetRow.classList.remove('table-active'), 1500);
         }
     }
 }
@@ -1041,75 +1061,194 @@ function selectTenantInApplications(tenant, app) {
     if (!tabPane) return;
 
     const tenantSelector = tabPane.querySelector(`#${applicationTenantSelectorTemplateId}`);
-    const appRows = tabPane.querySelectorAll('#applicationsTable tbody tr');
-
     if (tenantSelector) {
-        tenantSelector.value = tenant;
+        tenantSelector.value = tenant || '';
     }
 
+    filterApplicationsTable(tabPane, tenant || '');
+
     if (app) {
-        const targetRow = Array.from(appRows).find(row => row.dataset.app === app);
+        const targetRow = tabPane.querySelector(`#applicationsTable tbody tr[data-app="${app}"]`);
         if (targetRow) {
-            targetRow.click();
             targetRow.classList.add('table-active');
+            targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setTimeout(() => targetRow.classList.remove('table-active'), 1500);
         }
     }
 }
 
-function renderResourceTable(tbody, resources = [], context = {}) {
+function filterApplicationsTable(container, tenant) {
+    const tbody = container.querySelector('#applicationsTable tbody');
     if (!tbody) return;
 
-    const {
-        showProjectedCost = false,
-        emptyMessage,
-        infoRowMessage,
-        infoRowVariant = 'table-info',
-        infoRowTextClass = 'text-muted',
-        forceEmptyMessage
-    } = context;
+    const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.dataset.role !== 'applications-placeholder');
+    let visibleCount = 0;
 
-    if (forceEmptyMessage) {
-        tbody.innerHTML = `<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">${forceEmptyMessage}</td></tr>`;
-        return;
+    rows.forEach(row => {
+        const matches = !tenant || row.dataset.tenant === tenant;
+        row.classList.toggle('d-none', !matches);
+        if (matches) {
+            visibleCount += 1;
+        }
+    });
+
+    let placeholderRow = tbody.querySelector('[data-role="applications-placeholder"]');
+    if (visibleCount === 0) {
+        if (!placeholderRow) {
+            placeholderRow = document.createElement('tr');
+            placeholderRow.dataset.role = 'applications-placeholder';
+            placeholderRow.className = 'placeholder-row';
+            placeholderRow.innerHTML = '<td colspan="6" class="text-center text-muted"></td>';
+            tbody.appendChild(placeholderRow);
+        }
+        const cell = placeholderRow.querySelector('td');
+        if (cell) {
+            cell.textContent = tenant ? '所选租户暂无应用。' : '暂无应用数据。';
+        }
+    } else if (placeholderRow) {
+        placeholderRow.remove();
+    }
+}
+
+function initializeResourcesTab(container, payload = {}) {
+    const tenantSelect = container.querySelector('#resourceTenantSelector');
+    const appSelect = container.querySelector('#resourceAppSelector');
+    const tableBody = container.querySelector('#resourceListTable tbody');
+    const exportBtn = container.querySelector('[data-action="export-resources"]');
+
+    if (!tenantSelect || !appSelect || !tableBody) return;
+
+    const tenants = Object.keys(tenantApplications);
+    const tenantOptions = ['<option value="">请选择租户...</option>'].concat(
+        tenants.map(tenant => `<option value="${tenant}">${tenant}</option>`)
+    );
+    tenantSelect.innerHTML = tenantOptions.join('');
+    appSelect.innerHTML = '<option value="">全部应用</option>';
+    appSelect.disabled = true;
+
+    const controls = {
+        tenantSelect,
+        appSelect,
+        tableBody,
+        exportBtn,
+        updateAppOptions(selectedTenant, preferredApp = '') {
+            if (!selectedTenant) {
+                appSelect.innerHTML = '<option value="">全部应用</option>';
+                appSelect.value = '';
+                appSelect.disabled = true;
+                return '';
+            }
+
+            const apps = (tenantApplications[selectedTenant] || []).slice();
+            const options = ['<option value="">全部应用</option>'].concat(
+                apps.map(app => `<option value="${app}">${app}</option>`)
+            );
+            appSelect.innerHTML = options.join('');
+
+            const resolved = preferredApp && apps.includes(preferredApp) ? preferredApp : '';
+            appSelect.value = resolved;
+            appSelect.disabled = false;
+            return resolved;
+        },
+        render(selectedTenant, selectedApp) {
+            if (!selectedTenant) {
+                renderResourceInventory(tableBody, [], '请选择租户以加载资源。');
+                if (exportBtn) {
+                    exportBtn.disabled = true;
+                }
+                return;
+            }
+
+            const resources = getResourcesByFilter(selectedTenant, selectedApp);
+            const emptyMessage = selectedApp ? '所选应用暂无资源数据。' : '该租户暂无资源数据。';
+            renderResourceInventory(tableBody, resources, emptyMessage);
+            if (exportBtn) {
+                exportBtn.disabled = !resources.length;
+            }
+        }
+    };
+
+    tenantSelect.addEventListener('change', () => {
+        const selectedTenant = tenantSelect.value;
+        controls.updateAppOptions(selectedTenant);
+        controls.render(selectedTenant, '');
+    });
+
+    appSelect.addEventListener('change', () => {
+        controls.render(tenantSelect.value, appSelect.value);
+    });
+
+    container._resourceControls = controls;
+    controls.render('', '');
+
+    if (payload.tenant) {
+        tenantSelect.value = payload.tenant;
+        const selectedApp = controls.updateAppOptions(payload.tenant, payload.app || '');
+        controls.render(payload.tenant, selectedApp);
+    }
+}
+
+function applyResourceFilters(tenant, app) {
+    const tabPane = document.getElementById(createTabId('resources'));
+    const controls = tabPane?._resourceControls;
+    if (!tabPane || !controls) return;
+
+    const resolvedTenant = tenant || '';
+    if (controls.tenantSelect) {
+        controls.tenantSelect.value = resolvedTenant;
     }
 
-    if (!resources || resources.length === 0) {
-        const message = emptyMessage || '暂无资源信息';
-        tbody.innerHTML = `<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">${message}</td></tr>`;
+    const resolvedApp = controls.updateAppOptions(resolvedTenant, app || '');
+    controls.render(resolvedTenant, resolvedTenant ? resolvedApp : '');
+}
+
+function getResourcesByFilter(tenant, app) {
+    if (!tenant) return [];
+    return resourceInventory.filter(resource => {
+        if (resource.tenant !== tenant) {
+            return false;
+        }
+        if (app) {
+            return resource.app === app;
+        }
+        return true;
+    });
+}
+
+function renderResourceInventory(tbody, resources = [], emptyMessage = '暂无资源数据。') {
+    if (!tbody) return;
+
+    if (!resources.length) {
+        tbody.innerHTML = `<tr class="placeholder-row"><td colspan="7" class="text-center text-muted">${emptyMessage}</td></tr>`;
         return;
     }
 
     const statusClassMap = {
         '运行': 'bg-success',
         '警告': 'bg-warning text-dark',
+        '待创建': 'bg-info text-dark',
         '部署中': 'bg-warning text-dark',
-        '待机': 'bg-secondary',
-        '待创建': 'bg-info text-dark'
+        '停止': 'bg-secondary'
     };
 
-    const infoRow = infoRowMessage
-        ? `<tr class="${infoRowVariant}"><td colspan="4" class="${infoRowTextClass}">${infoRowMessage}</td></tr>`
-        : '';
-
-    const resourceRows = resources
+    const rows = resources
         .map(resource => {
-            const statusClass = statusClassMap[resource.status] || 'bg-secondary';
-            const cost = showProjectedCost ? (resource.cost || '--') : '--';
+            const badgeClass = statusClassMap[resource.status] || 'bg-secondary';
             return `
             <tr>
                 <td>${resource.name}</td>
+                <td>${resource.app}</td>
                 <td>${resource.type}</td>
-                <td>
-                    <span class="badge ${statusClass}">${resource.status}</span>
-                </td>
-                <td>${cost}</td>
+                <td>${resource.region || '--'}</td>
+                <td><span class="badge ${badgeClass}">${resource.status}</span></td>
+                <td>${resource.lastActivity || '--'}</td>
+                <td>${resource.cost || '--'}</td>
             </tr>
         `;
         })
         .join('');
 
-    tbody.innerHTML = infoRow + resourceRows;
+    tbody.innerHTML = rows;
 }
 
 function renderRoleUsers(tbody, users = []) {
@@ -1696,26 +1835,10 @@ function handleAppLinkClick(event) {
     if (!target) return;
 
     const appName = target.closest('tr')?.dataset.app;
+    const tenantName = target.closest('tr')?.dataset.tenant || '';
     if (appName) {
-        renderResourceTableFromElement(target.closest('.tab-pane'), appName);
+        openTab('resources', '云资源', { tenant: tenantName, app: appName });
     }
-}
-
-function renderResourceTableFromElement(tabPane, appName) {
-    if (!tabPane) return;
-    const resourceTableBody = tabPane.querySelector('#resourceTable tbody');
-    const resourceLabel = tabPane.querySelector('#resourceAppLabel');
-    if (!resourceTableBody) return;
-
-    const tableRows = Array.from(tabPane.querySelectorAll('#applicationsTable tbody tr'));
-    const targetRow = tableRows.find(row => row.dataset.app === appName);
-
-    const status = targetRow?.dataset.status || '';
-    const context = resolveApplicationResourceContext(status);
-    const suffix = context.labelSuffix || '的资源';
-    resourceLabel.textContent = `${appName}${suffix}`;
-
-    renderResourceTable(resourceTableBody, appResources[appName], context);
 }
 
 function toggleChat(open) {
