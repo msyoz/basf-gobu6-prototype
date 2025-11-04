@@ -62,10 +62,10 @@ function initializeApprovalModal() {
 
 function resolveApprovalFlow(tenantName = '') {
     const tenantOwner = getTenantUsers(tenantName).find(user => user.role === '租户所有者') || {};
-    const appAdmins = (roleAssignments['App Admins']?.users || []);
+    const tenantAdmins = (roleAssignments['Tenant Admins']?.users || []);
     const platformAdmins = (roleAssignments['Platform Admins']?.users || []);
 
-    const appAdmin = appAdmins.find(user => user.tenant === tenantName) || appAdmins[0] || {};
+    const tenantAdmin = tenantAdmins.find(user => user.tenant === tenantName) || tenantAdmins[0] || {};
     const platformAdmin = platformAdmins[0] || {};
 
     return [
@@ -80,8 +80,8 @@ function resolveApprovalFlow(tenantName = '') {
             level: 2,
             role: '租户管理员',
             title: '2级 审批 - 租户管理员',
-            contactName: appAdmin.name || '未配置',
-            contactEmail: appAdmin.email || '--'
+            contactName: tenantAdmin.name || '未配置',
+            contactEmail: tenantAdmin.email || '--'
         },
         {
             level: 3,
@@ -1029,13 +1029,6 @@ const roleAssignments = {
             { name: 'Zhao Yun', email: 'zhaoyun@RG-default.cn', tenant: 'RG-default' },
             { name: 'Li Lei', email: 'lilei@EV-default.cn', tenant: 'EV-default' },
             { name: 'Wang Fang', email: 'wangfang@biocloud.cn', tenant: 'ED-default' }
-        ]
-    },
-    'App Admins': {
-        description: '应用管理员，具备应用管理的权限，可以批准应用的申请',
-        users: [
-            { name: 'Liu Yang', email: 'liuyang@apps.cn', tenant: 'RG-default' },
-            { name: 'Qin Mei', email: 'qinmei@apps.cn', tenant: 'EV-default' }
         ]
     },
     'Template Admins': {
