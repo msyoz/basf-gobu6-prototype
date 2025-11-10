@@ -36,6 +36,12 @@ const APPLICATION_STATUS_BADGES = {
     rejected: { label: '已拒绝', className: 'badge bg-danger' }
 };
 
+const TEMPLATE_VERSION_STORE = {
+    'SAP S/4HANA': 6,
+    'AI Pipeline': 5,
+    'Lab Automation': 4
+};
+
 let approvalModalElements = null;
 let approvalModalInstance = null;
 
@@ -368,6 +374,80 @@ function resetApprovalModal() {
     if (approvalModalElements.rejectBtn) {
         approvalModalElements.rejectBtn.disabled = false;
         approvalModalElements.rejectBtn.textContent = '拒绝';
+    }
+}
+
+function syncTemplateRegistry(scope = document) {
+    if (!scope) return;
+    const rows = scope.querySelectorAll('[data-template-name][data-template-version]');
+    rows.forEach(row => {
+        const name = row.dataset.templateName || '';
+        const versionValue = Number(row.dataset.templateVersion);
+        if (!name) return;
+        if (!Number.isNaN(versionValue) && versionValue > 0) {
+            TEMPLATE_VERSION_STORE[name] = versionValue;
+        }
+    });
+}
+
+function locateTemplateRow(templateName, scope = document) {
+    if (!templateName) return null;
+    const rows = scope.querySelectorAll('[data-template-name]');
+    return Array.from(rows).find(row => row.dataset.templateName === templateName) || null;
+}
+
+function getCurrentTemplateVersion(templateName, overrideVersion) {
+    if (!templateName) return 0;
+
+    if (typeof overrideVersion === 'number' && !Number.isNaN(overrideVersion) && overrideVersion > 0) {
+        return overrideVersion;
+    }
+
+    const stored = Number(TEMPLATE_VERSION_STORE[templateName]);
+    if (!Number.isNaN(stored) && stored > 0) {
+        return stored;
+    }
+
+    const row = locateTemplateRow(templateName);
+    if (row) {
+        const datasetValue = Number(row.dataset.templateVersion);
+        if (!Number.isNaN(datasetValue) && datasetValue > 0) {
+            TEMPLATE_VERSION_STORE[templateName] = datasetValue;
+            return datasetValue;
+        }
+
+        const versionCell = row.querySelector('td:nth-child(2)');
+        if (versionCell) {
+            const cellValue = Number((versionCell.textContent || '').trim());
+            if (!Number.isNaN(cellValue) && cellValue > 0) {
+                TEMPLATE_VERSION_STORE[templateName] = cellValue;
+                return cellValue;
+            }
+        }
+    }
+
+    return 0;
+}
+
+function setTemplateVersion(templateName, version) {
+    if (!templateName) return;
+    const numericVersion = Number(version);
+    if (Number.isNaN(numericVersion) || numericVersion < 1) return;
+
+    const normalized = Math.round(numericVersion);
+    TEMPLATE_VERSION_STORE[templateName] = normalized;
+
+    const row = locateTemplateRow(templateName);
+    if (row) {
+        row.dataset.templateVersion = String(normalized);
+        const versionCell = row.querySelector('td:nth-child(2)');
+        if (versionCell) {
+            versionCell.textContent = String(normalized);
+        }
+        const triggerButton = row.querySelector('[data-template-name][data-template-version]');
+        if (triggerButton) {
+            triggerButton.setAttribute('data-template-version', String(normalized));
+        }
     }
 }
 
@@ -1373,6 +1453,8 @@ function openTab(page, title, payload = {}) {
         initializeKnowledgeTab(tabPane);
     } else if (page === 'knowledge-qa') {
         initializeKnowledgeQATab(tabPane);
+    } else if (page === 'templates') {
+        initializeTemplatesTab(tabPane);
     }
 }
 
@@ -1386,6 +1468,10 @@ function initializeApplicationsTab(container, payload = {}) {
         tenantSelector.addEventListener('change', () => {
             filterApplicationsTable(container, tenantSelector.value);
         });
+    }
+
+    function initializeTemplatesTab(container) {
+        syncTemplateRegistry(container);
     }
 
     appRows.forEach(row => {
@@ -2236,6 +2322,87 @@ function initializeRolesTab(container) {
     });
 }
 
+function initTemplateVersionModal() {
+    const modalElement = document.getElementById('templateVersionModal');
+    if (!modalElement) return;
+
+    const form = modalElement.querySelector('form');
+    const templateSelect = modalElement.querySelector('[data-role="template-version-select"]');
+    const versionInput = modalElement.querySelector('[data-role="template-version-input"]');
+    if (!form || !templateSelect || !versionInput) return;
+
+    const applySuggestion = (templateName, overrideVersion) => {
+        if (!templateName) {
+            versionInput.value = '';
+            versionInput.placeholder = '请输入新版本号';
+            return;
+        }
+
+        const current = getCurrentTemplateVersion(templateName, overrideVersion);
+        const suggested = current > 0 ? current + 1 : 1;
+
+        versionInput.value = String(suggested);
+        versionInput.placeholder = `建议版本：${suggested}`;
+        versionInput.min = 1;
+        versionInput.step = 1;
+    };
+
+    modalElement.addEventListener('show.bs.modal', event => {
+        syncTemplateRegistry(document);
+
+        const trigger = event.relatedTarget;
+        const triggerTemplate = trigger?.dataset.templateName || '';
+        const triggerVersion = Number(trigger?.dataset.templateVersion);
+
+        if (triggerTemplate) {
+            templateSelect.value = triggerTemplate;
+        }
+
+        if (!templateSelect.value) {
+            // Ensure a template is selected so that suggestion can be provided.
+            const firstOption = templateSelect.querySelector('option');
+            if (firstOption) {
+                templateSelect.value = firstOption.value;
+            }
+        }
+
+        applySuggestion(templateSelect.value, triggerVersion);
+    });
+
+    templateSelect.addEventListener('change', () => {
+        applySuggestion(templateSelect.value);
+    });
+
+    modalElement.addEventListener('hidden.bs.modal', () => {
+        form.reset();
+    });
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+
+        const templateName = templateSelect.value;
+        const nextVersion = Number(versionInput.value);
+
+        if (!templateName) {
+            window.alert('请选择模板。');
+            return;
+        }
+
+        if (Number.isNaN(nextVersion) || nextVersion < 1) {
+            window.alert('请输入有效的版本号。');
+            versionInput.focus();
+            return;
+        }
+
+        setTemplateVersion(templateName, nextVersion);
+
+        if (typeof bootstrap !== 'undefined') {
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            setTimeout(() => modalInstance.hide(), 300);
+        }
+    });
+}
+
 function initAppCreationModal() {
     const modalElement = document.getElementById('appAddModal');
     if (!modalElement) return;
@@ -2825,6 +2992,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDelegates();
     initChat();
     initSidebar();
+    initTemplateVersionModal();
     initAppCreationModal();
     initAppEditModal();
     initTenantFormModal();

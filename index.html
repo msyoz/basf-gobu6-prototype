@@ -432,44 +432,44 @@
                     <thead>
                         <tr>
                             <th>模板名称</th>
-                            <th>最新版本</th>
-                            <th>最近更新</th>
-                            <th>描述</th>
-                            <th>维护人</th>
+                            <th>模板版本</th>
+                            <th>最后更新时间</th>
+                            <th>最后更新人</th>
+                            <th>审批要求</th>
                             <th class="text-end">操作</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr data-template-name="SAP S/4HANA" data-template-version="6" data-template-approval="2">
                             <td>SAP S/4HANA</td>
-                            <td>v1.6</td>
+                            <td>6</td>
                             <td>2025-09-08</td>
-                            <td>ERP 核心系统</td>
                             <td>张伟</td>
+                            <td>2级</td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateVersionModal">更新版本</button>
+                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateVersionModal" data-template-name="SAP S/4HANA" data-template-version="6">更新版本</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
                         </tr>
-                        <tr>
+                        <tr data-template-name="AI Pipeline" data-template-version="5" data-template-approval="3">
                             <td>AI Pipeline</td>
-                            <td>v2.1</td>
+                            <td>5</td>
                             <td>2025-08-19</td>
-                            <td>机器学习推理</td>
                             <td>刘洋</td>
+                            <td>3级</td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateVersionModal">更新版本</button>
+                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateVersionModal" data-template-name="AI Pipeline" data-template-version="5">更新版本</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
                         </tr>
-                        <tr>
+                        <tr data-template-name="Lab Automation" data-template-version="4" data-template-approval="1">
                             <td>Lab Automation</td>
-                            <td>v1.3</td>
+                            <td>4</td>
                             <td>2025-07-02</td>
-                            <td>实验室流程</td>
                             <td>王梅</td>
+                            <td>1级</td>
                             <td class="text-end">
-                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateVersionModal">更新版本</button>
+                                <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateVersionModal" data-template-name="Lab Automation" data-template-version="4">更新版本</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
                         </tr>
@@ -994,13 +994,21 @@ module "sap_s4hana" {
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
                     </div>
                     <div class="modal-body row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-lg-4">
                             <label class="form-label">模板名称</label>
                             <input type="text" class="form-control" placeholder="例如 Data Hub" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">版本</label>
-                            <input type="text" class="form-control" value="v1.0" required>
+                        <div class="col-md-6 col-lg-4">
+                            <label class="form-label">模板版本</label>
+                            <input type="number" class="form-control" value="1" min="1" step="1" required>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <label class="form-label">审批要求</label>
+                            <select class="form-select" required>
+                                <option value="1">1级</option>
+                                <option value="2">2级</option>
+                                <option value="3">3级</option>
+                            </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label">描述</label>
@@ -1031,15 +1039,15 @@ module "sap_s4hana" {
                     <div class="modal-body row g-3">
                         <div class="col-md-6">
                             <label class="form-label">选择模板</label>
-                            <select class="form-select" required>
-                                <option>SAP S/4HANA</option>
-                                <option>AI Pipeline</option>
-                                <option>Lab Automation</option>
+                            <select class="form-select" data-role="template-version-select" required>
+                                <option value="SAP S/4HANA">SAP S/4HANA</option>
+                                <option value="AI Pipeline">AI Pipeline</option>
+                                <option value="Lab Automation">Lab Automation</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">新版本号</label>
-                            <input type="text" class="form-control" placeholder="v1.7" required>
+                            <input type="number" class="form-control" data-role="template-version-input" min="1" step="1" required>
                         </div>
                         <div class="col-12">
                             <label class="form-label">版本说明</label>
