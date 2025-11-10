@@ -1909,12 +1909,12 @@ function renderKnowledgeRows(tbody, documents, totalCount) {
     if (!tbody) return;
 
     if (!totalCount) {
-        tbody.innerHTML = '<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">当前视图暂无文档</td></tr>';
+        tbody.innerHTML = '<tr class="placeholder-row"><td colspan="5" class="text-center text-muted">当前视图暂无文档</td></tr>';
         return;
     }
 
     if (!documents || documents.length === 0) {
-        tbody.innerHTML = '<tr class="placeholder-row"><td colspan="4" class="text-center text-muted">当前页暂无文档</td></tr>';
+        tbody.innerHTML = '<tr class="placeholder-row"><td colspan="5" class="text-center text-muted">当前页暂无文档</td></tr>';
         return;
     }
 
@@ -1925,6 +1925,11 @@ function renderKnowledgeRows(tbody, documents, totalCount) {
                 <td>${doc.uploadedAt || '--'}</td>
                 <td>${buildKnowledgeEnabledBadge(doc.enabled)}</td>
                 <td>${buildKnowledgeParseBadge(doc.parseState)}</td>
+                <td class="text-end">
+                    <button type="button" class="btn btn-sm ${doc.enabled ? 'btn-outline-secondary' : 'btn-outline-success'}" data-action="toggle-knowledge-enabled">
+                        ${doc.enabled ? '禁用' : '启用'}
+                    </button>
+                </td>
             </tr>
         `)
         .join('');
@@ -2011,6 +2016,23 @@ function initializeKnowledgeTab(container) {
         renderKnowledgeRows(tableBody, pageItems, total);
         renderKnowledgePagination(paginationList, paginationContainer, total, currentPage);
     };
+
+    tableBody.addEventListener('click', event => {
+        const control = event.target.closest('[data-action="toggle-knowledge-enabled"]');
+        if (!control) return;
+        event.preventDefault();
+
+        const row = control.closest('tr[data-document-id]');
+        const documentId = row?.dataset.documentId;
+        if (!documentId) return;
+
+        const documents = getDocumentsByScope(currentScope);
+        const target = documents.find(item => item.id === documentId);
+        if (!target) return;
+
+        target.enabled = !target.enabled;
+        render();
+    });
 
     scopeButtons.forEach(button => {
         button.addEventListener('click', () => {
