@@ -2084,6 +2084,9 @@ function initializeKnowledgeQATab(container) {
     const scopeLabel = container.querySelector('[data-role="knowledge-qa-scope-label"]');
     const scopeDesc = container.querySelector('[data-role="knowledge-qa-scope-desc"]');
     const scopeContext = container.querySelector('[data-role="knowledge-qa-context"]');
+    const historyList = container.querySelector('[data-role="knowledge-qa-history-list"]');
+    const historyEmpty = container.querySelector('[data-role="knowledge-qa-history-empty"]');
+    const newSessionBtn = container.querySelector('[data-role="knowledge-qa-new-session"]');
 
     if (!messages || !form || !input) return;
 
@@ -2092,7 +2095,28 @@ function initializeKnowledgeQATab(container) {
     const state = {
         scope: initialScope,
         pending: false,
-        counters: { tenant: 0, personal: 0 }
+        counters: { tenant: 0, personal: 0 },
+        sessions: { tenant: [], personal: [] },
+        activeSessionId: null
+    };
+
+    const formatTimestamp = isoString => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleString('zh-CN', {
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const getSessions = () => {
+        if (!state.sessions[state.scope]) {
+            state.sessions[state.scope] = [];
+        }
+        return state.sessions[state.scope];
     };
 
     const syncScopeButtons = () => {
@@ -2118,6 +2142,113 @@ function initializeKnowledgeQATab(container) {
         }
     };
 
+    const renderHistory = () => {
+        if (!historyList) return;
+        const sessions = getSessions();
+        historyList.innerHTML = '';
+
+        if (historyEmpty) {
+            historyEmpty.classList.toggle('d-none', sessions.length > 0);
+        }
+
+        sessions.forEach(session => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'list-group-item list-group-item-action knowledge-qa-history-item';
+            if (session.id === state.activeSessionId) {
+                item.classList.add('active');
+            }
+            item.dataset.sessionId = session.id;
+
+            const titleEl = document.createElement('div');
+            titleEl.className = 'history-title';
+            titleEl.textContent = session.title || '新的会话';
+
+            const metaEl = document.createElement('div');
+            metaEl.className = 'history-meta';
+            metaEl.textContent = formatTimestamp(session.updatedAt || session.createdAt);
+
+            item.appendChild(titleEl);
+            item.appendChild(metaEl);
+            historyList.appendChild(item);
+        });
+    };
+
+    const getActiveSession = () => {
+        const sessions = getSessions();
+        return sessions.find(session => session.id === state.activeSessionId) || null;
+    };
+
+    const clearConversation = () => {
+        messages.innerHTML = '';
+    };
+
+    const renderSessionMessages = session => {
+        clearConversation();
+        if (!session || session.messages.length === 0) {
+            const config = KNOWLEDGE_QA_SCOPE_CONFIG[state.scope];
+            if (config?.welcome) {
+                appendMessage('bot', config.welcome, { persist: false });
+            }
+            return;
+        }
+
+        session.messages.forEach(entry => {
+            appendMessage(entry.role, entry.text, { persist: false });
+        });
+    };
+
+    const startNewSession = ({ resetCounter = true } = {}) => {
+        if (resetCounter) {
+            state.counters[state.scope] = 0;
+        }
+
+        const now = new Date().toISOString();
+        const session = {
+            id: `session-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+            title: '',
+            createdAt: now,
+            updatedAt: now,
+            messages: []
+        };
+
+        const sessions = getSessions();
+        sessions.unshift(session);
+        state.activeSessionId = session.id;
+        renderHistory();
+        clearConversation();
+        setPending(false);
+        input.value = '';
+        input.focus();
+
+        const config = KNOWLEDGE_QA_SCOPE_CONFIG[state.scope];
+        if (config?.welcome) {
+            appendMessage('bot', config.welcome, { persist: false });
+        }
+    };
+
+    const ensureActiveSession = () => {
+        const sessions = getSessions();
+        const active = sessions.find(session => session.id === state.activeSessionId);
+        if (active) {
+            return active;
+        }
+        startNewSession({ resetCounter: false });
+        return getActiveSession();
+    };
+
+    const loadSession = sessionId => {
+        const sessions = getSessions();
+        const target = sessions.find(session => session.id === sessionId);
+        if (!target) return;
+        state.activeSessionId = sessionId;
+        renderHistory();
+        renderSessionMessages(target);
+        setPending(false);
+        input.value = '';
+        input.focus();
+    };
+
     const createMessageElement = (role, text) => {
         const wrapper = document.createElement('div');
         wrapper.className = `knowledge-qa-message ${role}`;
@@ -2135,20 +2266,29 @@ function initializeKnowledgeQATab(container) {
         return wrapper;
     };
 
-    const appendMessage = (role, text) => {
+    const appendMessage = (role, text, options = {}) => {
+        const { persist = true } = options;
         messages.appendChild(createMessageElement(role, text));
         messages.scrollTop = messages.scrollHeight;
-    };
 
-    const clearConversation = () => {
-        messages.innerHTML = '';
-    };
+        if (!persist) return;
 
-    const showWelcome = () => {
-        const config = KNOWLEDGE_QA_SCOPE_CONFIG[state.scope];
-        if (config?.welcome) {
-            appendMessage('bot', config.welcome);
+        const session = ensureActiveSession();
+        if (!session) return;
+
+        const entry = {
+            role,
+            text,
+            timestamp: new Date().toISOString()
+        };
+
+        session.messages.push(entry);
+        session.updatedAt = entry.timestamp;
+        if (role === 'user' && !session.title) {
+            session.title = text.length > 18 ? `${text.slice(0, 18)}...` : text;
         }
+
+        renderHistory();
     };
 
     const setPending = flag => {
@@ -2195,10 +2335,19 @@ function initializeKnowledgeQATab(container) {
     });
 
     resetBtn?.addEventListener('click', () => {
-        state.counters[state.scope] = 0;
-        clearConversation();
-        setPending(false);
-        showWelcome();
+        startNewSession();
+    });
+
+    newSessionBtn?.addEventListener('click', () => {
+        startNewSession();
+    });
+
+    historyList?.addEventListener('click', event => {
+        const target = event.target.closest('.knowledge-qa-history-item');
+        if (!target || target.classList.contains('active')) return;
+        const sessionId = target.dataset.sessionId;
+        if (!sessionId) return;
+        loadSession(sessionId);
     });
 
     scopeButtons.forEach(button => {
@@ -2206,20 +2355,33 @@ function initializeKnowledgeQATab(container) {
             const scope = button.dataset.scope;
             if (!scope || scope === state.scope) return;
             state.scope = scope;
-            state.counters[scope] = 0;
             syncScopeButtons();
             syncScopeMeta();
-            clearConversation();
             setPending(false);
-            showWelcome();
+
+            if (!state.sessions[scope]) {
+                state.sessions[scope] = [];
+            }
+
+            if (!Number.isFinite(state.counters[scope])) {
+                state.counters[scope] = 0;
+            }
+
+            if (state.sessions[scope].length === 0) {
+                state.activeSessionId = null;
+                startNewSession();
+                return;
+            }
+
+            state.activeSessionId = state.sessions[scope][0].id;
+            renderHistory();
+            renderSessionMessages(getActiveSession());
         });
     });
 
     syncScopeButtons();
     syncScopeMeta();
-    clearConversation();
-    setPending(false);
-    showWelcome();
+    startNewSession();
 }
 
 function initializeRolesTab(container) {
