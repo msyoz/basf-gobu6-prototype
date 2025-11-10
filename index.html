@@ -436,38 +436,42 @@
                             <th>最后更新时间</th>
                             <th>最后更新人</th>
                             <th>审批要求</th>
+                            <th>状态</th>
                             <th class="text-end">操作</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr data-template-name="SAP S/4HANA" data-template-version="6" data-template-approval="2">
+                        <tr data-template-name="SAP S/4HANA" data-template-version="6" data-template-approval="2" data-template-status="active">
                             <td>SAP S/4HANA</td>
                             <td>6</td>
                             <td>2025-09-08</td>
                             <td>张伟</td>
                             <td>2级</td>
+                            <td><span class="badge bg-success" data-role="template-status">启用</span></td>
                             <td class="text-end">
                                 <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateVersionModal" data-template-name="SAP S/4HANA" data-template-version="6">更新版本</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
                         </tr>
-                        <tr data-template-name="AI Pipeline" data-template-version="5" data-template-approval="3">
+                        <tr data-template-name="AI Pipeline" data-template-version="5" data-template-approval="3" data-template-status="active">
                             <td>AI Pipeline</td>
                             <td>5</td>
                             <td>2025-08-19</td>
                             <td>刘洋</td>
                             <td>3级</td>
+                            <td><span class="badge bg-success" data-role="template-status">启用</span></td>
                             <td class="text-end">
                                 <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateVersionModal" data-template-name="AI Pipeline" data-template-version="5">更新版本</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                             </td>
                         </tr>
-                        <tr data-template-name="Lab Automation" data-template-version="4" data-template-approval="1">
+                        <tr data-template-name="Lab Automation" data-template-version="4" data-template-approval="1" data-template-status="deleted">
                             <td>Lab Automation</td>
                             <td>4</td>
                             <td>2025-07-02</td>
                             <td>王梅</td>
                             <td>1级</td>
+                            <td><span class="badge bg-secondary" data-role="template-status">已删除</span></td>
                             <td class="text-end">
                                 <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateVersionModal" data-template-name="Lab Automation" data-template-version="4">更新版本</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
