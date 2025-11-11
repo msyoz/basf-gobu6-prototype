@@ -55,6 +55,7 @@ function initializeApprovalModal() {
         modal: modalElement,
         appName: modalElement.querySelector('[data-role="approval-app-name"]'),
         tenantName: modalElement.querySelector('[data-role="approval-tenant-name"]'),
+        costValue: modalElement.querySelector('[data-role="approval-cost"]'),
         stepsContainer: modalElement.querySelector('[data-role="approval-steps"]'),
         feedback: modalElement.querySelector('[data-role="approval-feedback"]'),
         confirmBtn: modalElement.querySelector('[data-action="approval-confirm"]'),
@@ -178,6 +179,13 @@ function openApprovalModal(row) {
 
     approvalState.flow = resolveApprovalFlow(tenantName);
     renderApprovalSteps(approvalModalElements.stepsContainer, approvalState.flow);
+
+    const totalCost = calculateApplicationCostSummary(appName, tenantName);
+    if (approvalModalElements.costValue) {
+        approvalModalElements.costValue.textContent = totalCost.display;
+        approvalModalElements.costValue.classList.toggle('text-primary', totalCost.hasData);
+        approvalModalElements.costValue.classList.toggle('text-muted', !totalCost.hasData);
+    }
 
     approvalState.status = row.dataset.status || 'pending';
 
@@ -366,6 +374,11 @@ function resetApprovalModal() {
     }
     if (approvalModalElements.tenantName) {
         approvalModalElements.tenantName.textContent = '';
+    }
+    if (approvalModalElements.costValue) {
+        approvalModalElements.costValue.textContent = '--';
+        approvalModalElements.costValue.classList.add('text-muted');
+        approvalModalElements.costValue.classList.remove('text-primary');
     }
     if (approvalModalElements.confirmBtn) {
         approvalModalElements.confirmBtn.disabled = false;
@@ -1273,6 +1286,99 @@ const resourceInventory = [
         cost: '¥ 1,240'
     }
 ];
+
+function parseCostLabel(costLabel) {
+    const result = {
+        amount: 0,
+        currencySymbol: '¥',
+        isEstimate: false,
+        hasAmount: false
+    };
+
+    if (costLabel === undefined || costLabel === null) {
+        return result;
+    }
+
+    const text = String(costLabel).trim();
+    if (!text) {
+        return result;
+    }
+
+    result.isEstimate = text.includes('预估');
+    const currencyMatch = text.match(/[¥￥$€£]/);
+    if (currencyMatch) {
+        result.currencySymbol = currencyMatch[0];
+    }
+
+    const numericPart = text.replace(/[^0-9.,]/g, '').replace(/[,，]/g, '');
+    if (!numericPart) {
+        return result;
+    }
+
+    const parsedAmount = Number.parseFloat(numericPart);
+    if (Number.isFinite(parsedAmount)) {
+        result.amount = parsedAmount;
+        result.hasAmount = true;
+    }
+
+    return result;
+}
+
+function formatCurrencyValue(amount, currencySymbol = '¥') {
+    const safeAmount = Number.isFinite(amount) ? amount : 0;
+    const hasDecimal = Math.abs(safeAmount % 1) > Number.EPSILON;
+    const formatter = new Intl.NumberFormat('zh-CN', {
+        minimumFractionDigits: hasDecimal ? 2 : 0,
+        maximumFractionDigits: hasDecimal ? 2 : 0
+    });
+    return `${currencySymbol} ${formatter.format(safeAmount)}`;
+}
+
+function calculateApplicationCostSummary(appName, tenantName) {
+    if (!appName) {
+        return { hasData: false, display: '暂无成本数据' };
+    }
+
+    const relatedResources = resourceInventory.filter(resource => {
+        if (resource.app !== appName) {
+            return false;
+        }
+        if (tenantName && resource.tenant !== tenantName) {
+            return false;
+        }
+        return true;
+    });
+
+    if (!relatedResources.length) {
+        return { hasData: false, display: '暂无成本数据' };
+    }
+
+    let total = 0;
+    let currencySymbol = '¥';
+    let isEstimate = false;
+    let hasAmount = false;
+
+    relatedResources.forEach(resource => {
+        const parsed = parseCostLabel(resource.cost);
+        if (!parsed.hasAmount) {
+            return;
+        }
+        hasAmount = true;
+        total += parsed.amount;
+        isEstimate = isEstimate || parsed.isEstimate;
+        currencySymbol = parsed.currencySymbol || currencySymbol;
+    });
+
+    if (!hasAmount) {
+        return { hasData: false, display: '暂无成本数据' };
+    }
+
+    const formatted = formatCurrencyValue(total, currencySymbol);
+    return {
+        hasData: true,
+        display: isEstimate ? `预估 ${formatted}` : formatted
+    };
+}
 
 const resourceActivityLogs = {
     'vm-erp-prod-01': [
