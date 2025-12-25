@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模板管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-width: 220px;
+            max-width: 220px;
+            background: #343a40;
+            color: #fff;
+            min-height: 100vh;
+        }
+        .sidebar .nav-link.active {
+            background: #495057;
+            color: #fff;
+        }
+        .sidebar .nav-link {
+            color: #adb5bd;
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+        }
+        .content {
+            padding: 2rem;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f1f3f5;
+        }
+        .pointer {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">管理后台</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">用户</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="sidebar d-flex flex-column p-3">
+            <h5 class="mb-4">功能导航</h5>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">模板管理</a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">其他功能</a>
+                </li>
+            </ul>
+        </div>
+        <!-- Main Content -->
+        <div class="flex-grow-1 content">
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" id="tabArea">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#templateTab">组件模板</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="templateTab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <button class="btn btn-primary" id="uploadBtn">Upload/Update</button>
+                    </div>
+                    <!-- 组件模板列表 -->
+                    <div class="row">
+                        <div class="col-6">
+                            <table class="table table-bordered table-hover" id="templateList">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Approve Level</th>
+                                        <th>Latest Version</th>
+                                        <th>Updated At</th>
+                                        <th>Operation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-6">
+                            <!-- 版本列表 -->
+                            <table class="table table-bordered table-hover" id="versionList">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Version</th>
+                                        <th>Version Description</th>
+                                        <th>Operation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TF代码上传对话框 -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadModalLabel">TF代码上传</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadForm">
+                        <div class="mb-3">
+                            <label for="tfZip" class="form-label">上传模板TF代码（zip文件）</label>
+                            <input class="form-control" type="file" id="tfZip" accept=".zip" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">上传</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 正在解析和加载进度条 -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="mb-3">正在解析和加载...</div>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Show Code 对话框 -->
+    <div class="modal fade" id="showCodeModal" tabindex="-1" aria-labelledby="showCodeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="showCodeModalLabel">Terraform 代码</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <div class="list-group" id="tfFileList"></div>
+                        </div>
+                        <div class="col-8">
+                            <pre id="tfCodeContent" style="background:#f8f9fa; padding:1rem; border-radius:5px; min-height:300px;"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 示例数据
+        let templates = [
+            { name: 'VM', description: 'Azure 虚拟机', approve: 'L2', version: '1.3.0', updated: '2025-12-20', versions: [
+                { version: '1.3.0', desc: '启用可用性集和托管磁盘', files: [
+                    { name: 'main.tf', code: "resource 'azurerm_windows_virtual_machine' 'vm' {\n  name     = 'vm-prod'\n  size     = 'Standard_D2s_v5'\n  ...\n}" },
+                    { name: 'variables.tf', code: "variable 'vm_size' {\n  type    = string\n  default = 'Standard_D2s_v5'\n}\n" }
+                ]},
+                { version: '1.2.0', desc: '增加诊断日志', files: [
+                    { name: 'main.tf', code: "resource 'azurerm_virtual_machine_extension' 'diag' {\n  name = 'IaaSDiagnostics'\n  ...\n}\n" }
+                ]}
+            ]},
+            { name: 'Azure SQL', description: '托管 MSSQL 数据库', approve: 'L2', version: '2.1.0', updated: '2025-12-18', versions: [
+                { version: '2.1.0', desc: '业务连续性组与异地备份', files: [
+                    { name: 'main.tf', code: "resource 'azurerm_mssql_database' 'db' {\n  name        = 'appdb'\n  max_size_gb = 32\n  ...\n}\n" },
+                    { name: 'failover.tf', code: "resource 'azurerm_mssql_failover_group' 'fg' {\n  name = 'fg-app'\n  ...\n}\n" }
+                ]},
+                { version: '2.0.0', desc: '弹性池 + 审计策略', files: [
+                    { name: 'elasticpool.tf', code: "resource 'azurerm_mssql_elasticpool' 'pool' {\n  name = 'pool-app'\n  ...\n}\n" }
+                ]}
+            ]},
+            { name: 'Storage Account', description: '通用型存储账户', approve: 'L1', version: '1.0.3', updated: '2025-12-10', versions: [
+                { version: '1.0.3', desc: '启用静态网站与私有终端', files: [
+                    { name: 'main.tf', code: "resource 'azurerm_storage_account' 'sa' {\n  name                     = 'staticsite'\n  enable_https_traffic_only = true\n  ...\n}\n" },
+                    { name: 'private_endpoint.tf', code: "resource 'azurerm_private_endpoint' 'pe' {\n  name = 'sa-pe'\n  ...\n}\n" }
+                ]},
+                { version: '1.0.2', desc: '接入容器生命周期规则', files: [
+                    { name: 'lifecycle.tf', code: "resource 'azurerm_storage_management_policy' 'lifecycle' {\n  storage_account_id = azurerm_storage_account.sa.id\n  ...\n}\n" }
+                ]}
+            ]}
+        ];
+        let selectedTemplateIdx = null;
+
+        function renderTemplateList() {
+            const tbody = document.querySelector('#templateList tbody');
+            tbody.innerHTML = '';
+            templates.forEach((tpl, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'pointer' + (selectedTemplateIdx === idx ? ' table-primary' : '');
+                tr.onclick = () => { selectedTemplateIdx = idx; renderTemplateList(); renderVersionList(); };
+                tr.innerHTML = `<td>${tpl.name}</td><td>${tpl.description}</td><td>${tpl.approve}</td><td>${tpl.version}</td><td>${tpl.updated}</td><td><button class="btn btn-sm btn-outline-danger delete-template" data-idx="${idx}">删除</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        function renderVersionList() {
+            const tbody = document.querySelector('#versionList tbody');
+            tbody.innerHTML = '';
+            if (selectedTemplateIdx === null) return;
+            templates[selectedTemplateIdx].versions.forEach((ver, vidx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${ver.version}</td><td>${ver.desc}</td><td><a href="#" class="show-code-link" data-vidx="${vidx}">Show Code</a></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        // Show Code
+        function openCodeModal(versionIdx) {
+            const ver = templates[selectedTemplateIdx].versions[versionIdx];
+            const files = ver.files || [];
+            const fileList = document.getElementById('tfFileList');
+            const codeEl = document.getElementById('tfCodeContent');
+            fileList.innerHTML = '';
+            codeEl.textContent = files.length ? files[0].code : '暂无代码';
+            files.forEach((f, fidx) => {
+                const a = document.createElement('a');
+                a.href = '#';
+                a.className = 'list-group-item list-group-item-action' + (fidx === 0 ? ' active' : '');
+                a.dataset.fidx = fidx;
+                a.dataset.vidx = versionIdx;
+                a.textContent = f.name;
+                fileList.appendChild(a);
+            });
+            new bootstrap.Modal(document.getElementById('showCodeModal')).show();
+        }
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('show-code-link')) {
+                e.preventDefault();
+                const vidx = Number(e.target.getAttribute('data-vidx'));
+                openCodeModal(vidx);
+            }
+            if (e.target.closest('#tfFileList')) {
+                const target = e.target.closest('a');
+                if (!target) return;
+                e.preventDefault();
+                const vidx = Number(target.dataset.vidx);
+                const fidx = Number(target.dataset.fidx);
+                const ver = templates[selectedTemplateIdx].versions[vidx];
+                const files = ver.files || [];
+                document.querySelectorAll('#tfFileList a').forEach(a => a.classList.remove('active'));
+                target.classList.add('active');
+                document.getElementById('tfCodeContent').textContent = files[fidx]?.code || '暂无代码';
+            }
+            if (e.target.classList.contains('delete-template')) {
+                e.stopPropagation();
+                const idx = Number(e.target.getAttribute('data-idx'));
+                if (!confirm('确定删除该模板吗？')) return;
+                templates.splice(idx, 1);
+                if (selectedTemplateIdx === idx) selectedTemplateIdx = null;
+                else if (selectedTemplateIdx > idx) selectedTemplateIdx--;
+                renderTemplateList();
+                renderVersionList();
+            }
+        });
+        // Upload/Update
+        document.getElementById('uploadBtn').onclick = function() {
+            document.getElementById('uploadForm').reset();
+            new bootstrap.Modal(document.getElementById('uploadModal')).show();
+        };
+        // 上传表单提交
+        document.getElementById('uploadForm').onsubmit = function(e) {
+            e.preventDefault();
+            bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+            new bootstrap.Modal(document.getElementById('loadingModal')).show();
+            setTimeout(() => {
+                bootstrap.Modal.getInstance(document.getElementById('loadingModal')).hide();
+                // 假设解析后刷新模板列表
+                // 这里可以插入实际上传和解析逻辑
+                renderTemplateList();
+            }, 2000);
+        };
+        // 初始化
+        renderTemplateList();
+        renderVersionList();
+    </script>
+</body>
+</html>
