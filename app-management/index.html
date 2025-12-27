@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>应用管理原型</title>
+    <!-- Using Bootstrap 5 for layout and styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            height: 60px;
+            background-color: #004a96; /* BASF Blue-ish */
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            flex-shrink: 0;
+        }
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 240px;
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding-top: 20px;
+            flex-shrink: 0;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #fff;
+        }
+        .nav-link.active {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #004a96;
+        }
+        .status-badge {
+            min-width: 100px;
+        }
+        /* Wizard Styles */
+        .wizard-step {
+            display: none;
+        }
+        .wizard-step.active {
+            display: block;
+        }
+        .template-list-item {
+            cursor: pointer;
+        }
+        .template-list-item.active {
+            background-color: #004a96;
+            color: white;
+            border-color: #004a96;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header -->
+    <header class="header">
+        <h4 class="m-0">BASF App Management</h4>
+    </header>
+
+    <div class="app-container">
+        <!-- 2. Left Sidebar -->
+        <nav class="sidebar">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">
+                        <i class="bi bi-grid-fill me-2"></i>应用管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-secondary" href="#">
+                        资源监控
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-secondary" href="#">
+                        系统设置
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 3. Right Operation Area -->
+        <main class="main-content">
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">应用列表</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">审批历史</a>
+                </li>
+            </ul>
+
+            <!-- Toolbar -->
+            <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light border rounded">
+                <div class="d-flex align-items-center">
+                    <label class="me-2 fw-bold">工作区:</label>
+                    <select class="form-select form-select-sm" style="width: 200px;">
+                        <option value="all">全部工作区</option>
+                        <option value="ws1">Workspace Alpha</option>
+                        <option value="ws2">Workspace Beta</option>
+                    </select>
+                </div>
+                <div>
+                    <!-- Added data-bs-toggle and data-bs-target to open modal -->
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAppModal">
+                        <span class="me-1">+</span>申请应用创建
+                    </button>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Template</th>
+                            <th>Resources Count</th>
+                            <th>Status</th>
+                            <th style="width: 200px;">Operation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Row 1: Created Status -->
+                        <tr>
+                            <td>APP-2023-001</td>
+                            <td>Marketing Portal</td>
+                            <td>Custom</td>
+                            <td>5</td>
+                            <td><span class="badge bg-secondary status-badge">Created</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1">编辑</button>
+                                <button class="btn btn-sm btn-outline-danger">删除</button>
+                            </td>
+                        </tr>
+                        
+                        <!-- Row 2: Approve Pending Status -->
+                        <tr>
+                            <td>APP-2023-002</td>
+                            <td>HR Analytics DB</td>
+                            <td>vm-linux_mssql-db</td>
+                            <td>2</td>
+                            <td><span class="badge bg-warning text-dark status-badge">Approve Pending</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-success">批准</button>
+                            </td>
+                        </tr>
+
+                        <!-- Row 3: Provisioning Status -->
+                        <tr>
+                            <td>APP-2023-003</td>
+                            <td>Logistics API</td>
+                            <td>container-app_mssql-db</td>
+                            <td>8</td>
+                            <td><span class="badge bg-info text-dark status-badge">Provisioning</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-light text-secondary" disabled>查看详情</button>
+                            </td>
+                        </tr>
+
+                         <!-- Row 4: Created Status (Another example) -->
+                         <tr>
+                            <td>APP-2023-004</td>
+                            <td>Internal Wiki</td>
+                            <td>Custom</td>
+                            <td>1</td>
+                            <td><span class="badge bg-secondary status-badge">Created</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1">编辑</button>
+                                <button class="btn btn-sm btn-outline-danger">删除</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create App Wizard Modal -->
+    <div class="modal fade" id="createAppModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">创建新应用</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Step 1: Basic Info -->
+                    <div id="step1" class="wizard-step active">
+                        <h6 class="mb-3 border-bottom pb-2">Step 1: 基本信息</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Workspace</label>
+                            <select class="form-select" id="appWorkspace">
+                                <option value="" selected disabled>Select a workspace...</option>
+                                <option value="ws1">Workspace Alpha</option>
+                                <option value="ws2">Workspace Beta</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">App Code</label>
+                            <input type="text" class="form-control" id="appCode" placeholder="e.g. APP-2023-XXX">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" id="appName" placeholder="Application Name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="appDesc" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Template Selection -->
+                    <div id="step2" class="wizard-step">
+                        <h6 class="mb-3 border-bottom pb-2">Step 2: 模板与组件</h6>
+                        <div class="row" style="height: 300px;">
+                            <!-- Left: Template List -->
+                            <div class="col-4 border-end overflow-auto h-100">
+                                <label class="form-label fw-bold">选择模板</label>
+                                <div class="list-group" id="templateList">
+                                    <a href="#" class="list-group-item list-group-item-action template-list-item active" data-template="custom">Custom</a>
+                                    <a href="#" class="list-group-item list-group-item-action template-list-item" data-template="vm-linux_mssql-db">vm-linux_mssql-db</a>
+                                    <a href="#" class="list-group-item list-group-item-action template-list-item" data-template="container-app_mssql-db">container-app_mssql-db</a>
+                                    <a href="#" class="list-group-item list-group-item-action template-list-item" data-template="static-web-app">static-web-app</a>
+                                </div>
+                            </div>
+                            <!-- Right: Component List -->
+                            <div class="col-8 overflow-auto h-100">
+                                <label class="form-label fw-bold">包含组件 (Azure Resources)</label>
+                                
+                                <!-- Custom Controls (Hidden unless Custom is selected) -->
+                                <div id="customControls" class="mb-3 p-2 bg-light border rounded">
+                                    <div class="input-group input-group-sm">
+                                        <select class="form-select" id="componentSelect">
+                                            <option value="Virtual Machine">Virtual Machine</option>
+                                            <option value="SQL Database">SQL Database</option>
+                                            <option value="Storage Account">Storage Account</option>
+                                            <option value="App Service">App Service</option>
+                                            <option value="Key Vault">Key Vault</option>
+                                        </select>
+                                        <button class="btn btn-outline-primary" type="button" id="addComponentBtn">Add Component</button>
+                                    </div>
+                                </div>
+
+                                <ul class="list-group" id="componentList">
+                                    <!-- Components will be injected here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Parameters -->
+                    <div id="step3" class="wizard-step">
+                        <h6 class="mb-3 border-bottom pb-2">Step 3: 参数设置</h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name (Read-only)</th>
+                                        <th>Type (Terraform)</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paramTableBody">
+                                    <!-- Params injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Summary -->
+                    <div id="step4" class="wizard-step">
+                        <h6 class="mb-3 border-bottom pb-2">Step 4: 汇总确认</h6>
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-3">Code</dt>
+                                    <dd class="col-sm-9" id="summaryCode">-</dd>
+
+                                    <dt class="col-sm-3">Name</dt>
+                                    <dd class="col-sm-9" id="summaryName">-</dd>
+
+                                    <dt class="col-sm-3">Workspace</dt>
+                                    <dd class="col-sm-9" id="summaryWorkspace">-</dd>
+
+                                    <dt class="col-sm-3">Template</dt>
+                                    <dd class="col-sm-9" id="summaryTemplate">-</dd>
+
+                                    <dt class="col-sm-3">Components</dt>
+                                    <dd class="col-sm-9" id="summaryComponents">-</dd>
+                                </dl>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>请确认以上信息无误，提交后将开始审批流程。
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-secondary" id="prevBtn" disabled>上一步</button>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="nextBtn">下一步</button>
+                        <button type="button" class="btn btn-success" id="submitBtn" style="display: none;">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Wizard Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentStep = 1;
+            const totalSteps = 4;
+            
+            // Data Models
+            const templates = {
+                'custom': [], // Dynamic
+                'vm-linux_mssql-db': ['Virtual Machine (Linux)', 'SQL Database (MSSQL)', 'Virtual Network'],
+                'container-app_mssql-db': ['Container App Environment', 'Container App', 'SQL Database (MSSQL)'],
+                'static-web-app': ['Static Web App']
+            };
+            
+            let wizardData = {
+                code: '',
+                name: '',
+                desc: '',
+                workspace: '',
+                template: 'custom',
+                components: [], // Current list of components
+                params: []
+            };
+
+            // DOM Elements
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const templateItems = document.querySelectorAll('.template-list-item');
+            const customControls = document.getElementById('customControls');
+            const componentList = document.getElementById('componentList');
+            const addComponentBtn = document.getElementById('addComponentBtn');
+            const componentSelect = document.getElementById('componentSelect');
+
+            // --- Navigation Logic ---
+            function showStep(step) {
+                document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+                document.getElementById('step' + step).classList.add('active');
+                
+                // Button State
+                prevBtn.disabled = step === 1;
+                if (step === totalSteps) {
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'inline-block';
+                    renderSummary();
+                } else {
+                    nextBtn.style.display = 'inline-block';
+                    submitBtn.style.display = 'none';
+                    nextBtn.innerText = '下一步';
+                }
+            }
+
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < totalSteps) {
+                    // Validation logic could go here
+                    if (currentStep === 2) {
+                        // Prepare Step 3 data before moving
+                        prepareParams();
+                    }
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 1) {
+                    currentStep--;
+                    showStep(currentStep);
+                }
+            });
+
+            // --- Step 2: Template Logic ---
+            function renderComponents() {
+                componentList.innerHTML = '';
+                wizardData.components.forEach(comp => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.textContent = comp;
+                    
+                    // Allow removing if custom
+                    if (wizardData.template === 'custom') {
+                        const btn = document.createElement('button');
+                        btn.className = 'btn btn-sm btn-outline-danger border-0';
+                        btn.innerHTML = '&times;';
+                        btn.onclick = () => {
+                            wizardData.components = wizardData.components.filter(c => c !== comp);
+                            renderComponents();
+                        };
+                        li.appendChild(btn);
+                    }
+                    componentList.appendChild(li);
+                });
+            }
+
+            templateItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // UI Update
+                    templateItems.forEach(t => t.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Data Update
+                    const selectedTemp = item.getAttribute('data-template');
+                    wizardData.template = selectedTemp;
+
+                    // Logic
+                    if (selectedTemp === 'custom') {
+                        customControls.style.display = 'block';
+                        wizardData.components = []; // Reset or keep? Resetting for simplicity
+                    } else {
+                        customControls.style.display = 'none';
+                        wizardData.components = [...templates[selectedTemp]];
+                    }
+                    renderComponents();
+                });
+            });
+
+            addComponentBtn.addEventListener('click', () => {
+                const val = componentSelect.value;
+                if (val) {
+                    wizardData.components.push(val);
+                    renderComponents();
+                }
+            });
+
+            // --- Step 3: Parameters Logic ---
+            function prepareParams() {
+                const tbody = document.getElementById('paramTableBody');
+                tbody.innerHTML = '';
+                
+                // Mock params based on components/template
+                let params = [
+                    { name: 'environment', type: 'string', value: 'dev' },
+                    { name: 'location', type: 'string', value: 'eastasia' }
+                ];
+
+                if (wizardData.template !== 'custom') {
+                    params.push({ name: 'instance_count', type: 'number', value: '1' });
+                }
+                
+                // Add specific params based on components
+                if (wizardData.components.some(c => c.includes('SQL'))) {
+                    params.push({ name: 'sql_admin_login', type: 'string', value: 'adminuser' });
+                }
+                if (wizardData.components.some(c => c.includes('Virtual Machine'))) {
+                    params.push({ name: 'vm_size', type: 'string', value: 'Standard_D2s_v3' });
+                }
+
+                params.forEach(p => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${p.name}</td>
+                        <td><span class="badge bg-light text-dark border">${p.type}</span></td>
+                        <td><input type="text" class="form-control form-control-sm" value="${p.value}"></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // --- Step 4: Summary Logic ---
+            function renderSummary() {
+                document.getElementById('summaryCode').textContent = document.getElementById('appCode').value || '-';
+                document.getElementById('summaryName').textContent = document.getElementById('appName').value || '-';
+                
+                const wsSelect = document.getElementById('appWorkspace');
+                document.getElementById('summaryWorkspace').textContent = wsSelect.options[wsSelect.selectedIndex].text;
+                
+                document.getElementById('summaryTemplate').textContent = wizardData.template;
+                document.getElementById('summaryComponents').textContent = wizardData.components.join(', ') || 'None';
+            }
+
+            // Initialize
+            renderComponents(); // For initial 'custom' state
+        });
+    </script>
+</body>
+</html>
