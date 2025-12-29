@@ -305,6 +305,9 @@
 
                                     <dt class="col-sm-3">Components</dt>
                                     <dd class="col-sm-9" id="summaryComponents">-</dd>
+
+                                    <dt class="col-sm-3">Cost</dt>
+                                    <dd class="col-sm-9" id="summaryCost">-</dd>
                                 </dl>
                             </div>
                         </div>
@@ -577,6 +580,8 @@
                 
                 document.getElementById('summaryTemplate').textContent = wizardData.template;
                 document.getElementById('summaryComponents').textContent = wizardData.components.join(', ') || 'None';
+
+                document.getElementById('summaryCost').textContent = '￥1500/月'; // Placeholder cost
             }
 
             // Initialize
