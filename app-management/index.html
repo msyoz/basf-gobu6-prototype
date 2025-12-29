@@ -458,32 +458,112 @@
                 const tbody = document.getElementById('paramTableBody');
                 tbody.innerHTML = '';
                 
-                // Mock params based on components/template
-                let params = [
+                // 1. Define Definitions (Mock Data)
+                const globalParams = [
                     { name: 'environment', type: 'string', value: 'dev' },
                     { name: 'location', type: 'string', value: 'eastasia' }
                 ];
 
-                if (wizardData.template !== 'custom') {
-                    params.push({ name: 'instance_count', type: 'number', value: '1' });
-                }
-                
-                // Add specific params based on components
-                if (wizardData.components.some(c => c.includes('SQL'))) {
-                    params.push({ name: 'sql_admin_login', type: 'string', value: 'adminuser' });
-                }
-                if (wizardData.components.some(c => c.includes('Virtual Machine'))) {
-                    params.push({ name: 'vm_size', type: 'string', value: 'Standard_D2s_v3' });
-                }
+                const paramDefinitions = {
+                    'Virtual Machine': [
+                        { name: 'vm_size', type: 'string', value: 'Standard_D2s_v3' },
+                        { name: 'vm_admin_username', type: 'string', value: 'azureuser' },
+                        { name: 'vm_admin_password', type: 'securestring', value: '' }
+                    ],
+                    'SQL Database': [
+                        { name: 'sql_sku', type: 'string', value: 'S0' },
+                        { name: 'sql_admin_username', type: 'string', value: 'sqladmin' },
+                        { name: 'sql_admin_password', type: 'securestring', value: '' }
+                    ],
+                    'Container App': [
+                        { name: 'cpu', type: 'number', value: '0.5' },
+                        { name: 'memory', type: 'string', value: '1.0Gi' },
+                        { name: 'image_tag', type: 'string', value: 'latest' }
+                    ],
+                    'Storage Account': [
+                        { name: 'stg_sku', type: 'string', value: 'Standard_LRS' }
+                    ],
+                    'App Service': [
+                        { name: 'app_sku', type: 'string', value: 'P1v2' }
+                    ],
+                    'Key Vault': [
+                        { name: 'kv_sku', type: 'string', value: 'standard' }
+                    ]
+                };
 
-                params.forEach(p => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${p.name}</td>
-                        <td><span class="badge bg-light text-dark border">${p.type}</span></td>
-                        <td><input type="text" class="form-control form-control-sm" value="${p.value}"></td>
-                    `;
-                    tbody.appendChild(tr);
+                // 2. Collect all params with source
+                let allParams = [];
+                // Add globals
+                globalParams.forEach(p => allParams.push({ ...p, source: 'Common' }));
+
+                // Add component params
+                wizardData.components.forEach(compName => {
+                    // Find matching definition key
+                    const key = Object.keys(paramDefinitions).find(k => compName.includes(k));
+                    if (key) {
+                        paramDefinitions[key].forEach(p => {
+                            allParams.push({ ...p, source: compName });
+                        });
+                    }
+                });
+
+                // 3. Identify duplicates (to merge into Common)
+                let nameCounts = {};
+                allParams.forEach(p => {
+                    if (p.source !== 'Common') {
+                        nameCounts[p.name] = (nameCounts[p.name] || 0) + 1;
+                    }
+                });
+
+                // 4. Grouping
+                let groups = { 'Common': [] };
+                // Initialize component groups to preserve order
+                wizardData.components.forEach(c => { groups[c] = []; });
+
+                let addedToCommon = new Set();
+
+                // Process Globals first
+                allParams.filter(p => p.source === 'Common').forEach(p => {
+                    groups['Common'].push(p);
+                    addedToCommon.add(p.name);
+                });
+
+                // Process Component Params
+                allParams.filter(p => p.source !== 'Common').forEach(p => {
+                    if (nameCounts[p.name] > 1) {
+                        // Move to Common if duplicate across components
+                        if (!addedToCommon.has(p.name)) {
+                            groups['Common'].push({ ...p });
+                            addedToCommon.add(p.name);
+                        }
+                    } else {
+                        // Keep in component group
+                        if (!groups[p.source]) groups[p.source] = [];
+                        groups[p.source].push(p);
+                    }
+                });
+
+                // 5. Render
+                Object.keys(groups).forEach(groupName => {
+                    const groupParams = groups[groupName];
+                    if (groupParams.length === 0) return;
+
+                    // Group Header
+                    const trHeader = document.createElement('tr');
+                    trHeader.className = 'table-secondary';
+                    trHeader.innerHTML = `<td colspan="3" class="fw-bold">${groupName}</td>`;
+                    tbody.appendChild(trHeader);
+
+                    // Params
+                    groupParams.forEach(p => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${p.name}</td>
+                            <td><span class="badge bg-light text-dark border">${p.type}</span></td>
+                            <td><input type="${p.type === 'securestring' ? 'password' : 'text'}" class="form-control form-control-sm" value="${p.value}"></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
                 });
             }
 
