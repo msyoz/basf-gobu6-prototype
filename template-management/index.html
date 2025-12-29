@@ -111,6 +111,7 @@
                                     <th>Description</th>
                                     <th>Approve Level</th>
                                     <th>Latest Version</th>
+                                    <th>Updated At</th>
                                     <th>Operation</th>
                                 </tr>
                             </thead>
@@ -139,7 +140,7 @@
                             </div>
                         </div>
                         <div class="card">
-                            <div class="card-header">包含组件</div>
+                            <div class="card-header">使用组件</div>
                             <div class="card-body p-0">
                                 <table class="table table-hover mb-0" id="appComponentList">
                                     <thead class="table-light">
@@ -299,14 +300,14 @@
 
         // 应用模板数据
         let appTemplates = [
-            { name: 'E-Commerce Platform', description: 'Full stack e-commerce solution', approve: 'L3', version: '1.0.0', versions: [
+            { name: 'E-Commerce Platform', description: 'Full stack e-commerce solution', approve: 'L3', version: '1.0.0', updated: '2025-12-20', versions: [
                 { version: '1.0.0', desc: 'Initial Release', components: [
                     { name: 'VM', version: '1.3.0' },
                     { name: 'Azure SQL', version: '2.1.0' },
                     { name: 'Storage Account', version: '1.0.3' }
                 ]}
             ]},
-            { name: 'Data Analytics Pipeline', description: 'Big data processing pipeline', approve: 'L2', version: '0.9.0', versions: [
+            { name: 'Data Analytics Pipeline', description: 'Big data processing pipeline', approve: 'L2', version: '0.9.0', updated: '2025-12-18', versions: [
                 { version: '0.9.0', desc: 'Beta Release', components: [
                     { name: 'Storage Account', version: '1.0.3' },
                     { name: 'VM', version: '1.2.0' }
@@ -384,7 +385,7 @@
                     // Clear component list when switching app
                     document.querySelector('#appComponentList tbody').innerHTML = '';
                 };
-                tr.innerHTML = `<td>${tpl.name}</td><td>${tpl.description}</td><td>${tpl.approve}</td><td>${tpl.version}</td><td><button class="btn btn-sm btn-outline-danger delete-app" data-idx="${idx}">删除</button></td>`;
+                tr.innerHTML = `<td>${tpl.name}</td><td>${tpl.description}</td><td>${tpl.approve}</td><td>${tpl.version}</td><td>${tpl.updated}</td><td><button class="btn btn-sm btn-outline-danger delete-app" data-idx="${idx}">禁用/启用</button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -427,7 +428,7 @@
                 const tr = document.createElement('tr');
                 tr.className = 'pointer' + (selectedTemplateIdx === idx ? ' table-primary' : '');
                 tr.onclick = () => { selectedTemplateIdx = idx; renderTemplateList(); renderVersionList(); };
-                tr.innerHTML = `<td>${tpl.name}</td><td>${tpl.description}</td><td>${tpl.approve}</td><td>${tpl.version}</td><td>${tpl.updated}</td><td><button class="btn btn-sm btn-outline-danger delete-template" data-idx="${idx}">删除</button></td>`;
+                tr.innerHTML = `<td>${tpl.name}</td><td>${tpl.description}</td><td>${tpl.approve}</td><td>${tpl.version}</td><td>${tpl.updated}</td><td><button class="btn btn-sm btn-outline-danger delete-template" data-idx="${idx}">禁用/启用</button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -481,7 +482,7 @@
             if (e.target.classList.contains('delete-template')) {
                 e.stopPropagation();
                 const idx = Number(e.target.getAttribute('data-idx'));
-                if (!confirm('确定删除该模板吗？')) return;
+                if (!confirm('确定禁用/启用该模板吗？')) return;
                 templates.splice(idx, 1);
                 if (selectedTemplateIdx === idx) selectedTemplateIdx = null;
                 else if (selectedTemplateIdx > idx) selectedTemplateIdx--;
@@ -491,7 +492,7 @@
             if (e.target.classList.contains('delete-app')) {
                 e.stopPropagation();
                 const idx = Number(e.target.getAttribute('data-idx'));
-                if (!confirm('确定删除该应用模板吗？')) return;
+                if (!confirm('确定禁用/启用该应用模板吗？')) return;
                 appTemplates.splice(idx, 1);
                 if (selectedAppIdx === idx) {
                     selectedAppIdx = null;
