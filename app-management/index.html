@@ -83,12 +83,12 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-secondary" href="#">
-                        资源监控
+                        其他AAA
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-secondary" href="#">
-                        系统设置
+                        其他BBB
                     </a>
                 </li>
             </ul>
@@ -129,9 +129,8 @@
                 <table class="table table-hover table-bordered align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>Code</th>
+                            <th>Resource Group Name</th>
                             <th>Name</th>
-                            <th>Template</th>
                             <th>Resources Count</th>
                             <th>Status</th>
                             <th style="width: 200px;">Operation</th>
@@ -140,22 +139,21 @@
                     <tbody>
                         <!-- Row 1: Created Status -->
                         <tr>
-                            <td>APP-2023-001</td>
+                            <td>BASF_RG_AllowPE_Dev_Marketing</td>
                             <td>Marketing Portal</td>
-                            <td>Custom</td>
                             <td>5</td>
                             <td><span class="badge bg-secondary status-badge">Created</span></td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary me-1">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
+                                <button class="btn btn-sm btn-light text-secondary">Azure Portal</button>
                             </td>
                         </tr>
                         
                         <!-- Row 2: Approve Pending Status -->
                         <tr>
-                            <td>APP-2023-002</td>
+                            <td>BASF_RG_AllowPE_Dev_HRAnalytics</td>
                             <td>HR Analytics DB</td>
-                            <td>vm-linux_mssql-db</td>
                             <td>2</td>
                             <td><span class="badge bg-warning text-dark status-badge">Approve Pending</span></td>
                             <td>
@@ -165,26 +163,23 @@
 
                         <!-- Row 3: Provisioning Status -->
                         <tr>
-                            <td>APP-2023-003</td>
+                            <td>BASF_RG_AllowPE_Dev_Logistics</td>
                             <td>Logistics API</td>
-                            <td>container-app_mssql-db</td>
                             <td>8</td>
                             <td><span class="badge bg-info text-dark status-badge">Provisioning</span></td>
                             <td>
-                                <button class="btn btn-sm btn-light text-secondary" disabled>查看详情</button>
+                                <button class="btn btn-sm btn-light text-secondary">Azure Portal</button>
                             </td>
                         </tr>
 
                          <!-- Row 4: Created Status (Another example) -->
                          <tr>
-                            <td>APP-2023-004</td>
+                            <td>BASF_RG_AllowPE_Dev_InternalWiki</td>
                             <td>Internal Wiki</td>
-                            <td>Custom</td>
                             <td>1</td>
-                            <td><span class="badge bg-secondary status-badge">Created</span></td>
+                            <td><span class="badge bg-secondary status-badge">Approve Rejected</span></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary me-1">编辑</button>
-                                <button class="btn btn-sm btn-outline-danger">删除</button>
+                                <button class="btn btn-sm btn-light text-secondary">批准情况</button>
                             </td>
                         </tr>
                     </tbody>
@@ -214,8 +209,8 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">App Code</label>
-                            <input type="text" class="form-control" id="appCode" placeholder="e.g. APP-2023-XXX">
+                            <label class="form-label">Resource Group Name</label>
+                            <input type="text" class="form-control" id="appCode" placeholder="e.g. BASF_RG_AllowPE_Dev_Share">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Name</label>
@@ -233,7 +228,7 @@
                         <div class="row" style="height: 300px;">
                             <!-- Left: Template List -->
                             <div class="col-4 border-end overflow-auto h-100">
-                                <label class="form-label fw-bold">选择模板</label>
+                                <label class="form-label fw-bold">选择应用模板</label>
                                 <div class="list-group" id="templateList">
                                     <a href="#" class="list-group-item list-group-item-action template-list-item active" data-template="custom">Custom</a>
                                     <a href="#" class="list-group-item list-group-item-action template-list-item" data-template="vm-linux_mssql-db">vm-linux_mssql-db</a>
