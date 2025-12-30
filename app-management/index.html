@@ -117,8 +117,8 @@
                     </select>
                 </div>
                 <div>
-                    <!-- Added data-bs-toggle and data-bs-target to open modal -->
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAppModal">
+                    <!-- Added id and removed data-bs-toggle/target to handle via JS -->
+                    <button class="btn btn-primary btn-sm" id="btnOpenCreate">
                         <span class="me-1">+</span>申请应用创建
                     </button>
                 </div>
@@ -144,7 +144,7 @@
                             <td>5</td>
                             <td><span class="badge bg-secondary status-badge">Created</span></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary me-1">编辑</button>
+                                <button class="btn btn-sm btn-outline-primary me-1 edit-app-btn">编辑</button>
                                 <button class="btn btn-sm btn-outline-danger">删除</button>
                                 <button class="btn btn-sm btn-light text-secondary">Azure Portal</button>
                             </td>
@@ -227,7 +227,7 @@
                         <h6 class="mb-3 border-bottom pb-2">Step 2: 模板与组件</h6>
                         <div class="row" style="height: 300px;">
                             <!-- Left: Template List -->
-                            <div class="col-4 border-end overflow-auto h-100">
+                            <div class="col-4 border-end overflow-auto h-100" id="templateCol">
                                 <label class="form-label fw-bold">选择应用模板</label>
                                 <div class="list-group" id="templateList">
                                     <a href="#" class="list-group-item list-group-item-action template-list-item active" data-template="custom">Custom</a>
@@ -237,7 +237,7 @@
                                 </div>
                             </div>
                             <!-- Right: Component List -->
-                            <div class="col-8 overflow-auto h-100">
+                            <div class="col-8 overflow-auto h-100" id="componentCol">
                                 <label class="form-label fw-bold">使用组件 (Azure Resources)</label>
                                 
                                 <!-- Custom Controls (Hidden unless Custom is selected) -->
@@ -331,6 +331,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             let currentStep = 1;
             const totalSteps = 4;
+            let wizardMode = 'create'; // 'create' or 'edit'
+            const modalEl = document.getElementById('createAppModal');
+            const modal = new bootstrap.Modal(modalEl);
             
             // Data Models
             const templates = {
@@ -359,6 +362,89 @@
             const componentList = document.getElementById('componentList');
             const addComponentBtn = document.getElementById('addComponentBtn');
             const componentSelect = document.getElementById('componentSelect');
+
+            // Layout Elements
+            const templateCol = document.getElementById('templateCol');
+            const componentCol = document.getElementById('componentCol');
+            const appWorkspace = document.getElementById('appWorkspace');
+            const appCode = document.getElementById('appCode');
+            const appName = document.getElementById('appName');
+            const appDesc = document.getElementById('appDesc');
+
+            // --- Mode Handling ---
+            document.getElementById('btnOpenCreate').addEventListener('click', () => {
+                initWizard('create');
+                modal.show();
+            });
+
+            document.querySelectorAll('.edit-app-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    initWizard('edit');
+                    modal.show();
+                });
+            });
+
+            function initWizard(mode) {
+                wizardMode = mode;
+                currentStep = 1;
+                showStep(1);
+                
+                // Reset Data
+                wizardData = {
+                    code: '',
+                    name: '',
+                    desc: '',
+                    workspace: '',
+                    template: 'custom',
+                    components: [],
+                    params: []
+                };
+
+                if (mode === 'create') {
+                    document.querySelector('.modal-title').textContent = '创建新应用';
+                    
+                    // Step 1 UI
+                    appWorkspace.disabled = false;
+                    appCode.disabled = false;
+                    appWorkspace.value = "";
+                    appCode.value = "";
+                    appName.value = "";
+                    appDesc.value = "";
+
+                    // Step 2 UI
+                    templateCol.style.display = 'block';
+                    componentCol.className = 'col-8 overflow-auto h-100';
+                    customControls.style.display = 'none'; // Hidden initially
+                    
+                    // Reset template selection
+                    templateItems.forEach(t => t.classList.remove('active'));
+                    templateItems[0].classList.add('active'); 
+                    wizardData.template = 'custom';
+                    customControls.style.display = 'block'; 
+
+                } else {
+                    document.querySelector('.modal-title').textContent = '编辑应用';
+
+                    // Step 1 UI - Mock Data
+                    appWorkspace.value = "ws1";
+                    appCode.value = "BASF_RG_AllowPE_Dev_Marketing";
+                    appName.value = "Marketing Portal";
+                    appDesc.value = "Existing marketing portal application.";
+                    
+                    appWorkspace.disabled = true;
+                    appCode.disabled = true;
+
+                    // Step 2 UI
+                    templateCol.style.display = 'none';
+                    componentCol.className = 'col-12 overflow-auto h-100';
+                    customControls.style.display = 'block'; // Always allow editing components
+
+                    // Mock Components
+                    wizardData.template = 'custom';
+                    wizardData.components = ['Virtual Machine (Linux)', 'SQL Database (MSSQL)', 'Storage Account', 'Key Vault', 'App Service'];
+                }
+                renderComponents();
+            }
 
             // --- Navigation Logic ---
             function showStep(step) {
@@ -405,8 +491,8 @@
                     li.className = 'list-group-item d-flex justify-content-between align-items-center';
                     li.textContent = comp;
                     
-                    // Allow removing if custom
-                    if (wizardData.template === 'custom') {
+                    // Allow removing if custom OR edit mode
+                    if (wizardData.template === 'custom' || wizardMode === 'edit') {
                         const btn = document.createElement('button');
                         btn.className = 'btn btn-sm btn-outline-danger border-0';
                         btn.innerHTML = '&times;';
@@ -422,6 +508,7 @@
 
             templateItems.forEach(item => {
                 item.addEventListener('click', (e) => {
+                    if (wizardMode === 'edit') return;
                     e.preventDefault();
                     // UI Update
                     templateItems.forEach(t => t.classList.remove('active'));
@@ -573,14 +660,23 @@
                 const wsSelect = document.getElementById('appWorkspace');
                 document.getElementById('summaryWorkspace').textContent = wsSelect.options[wsSelect.selectedIndex].text;
                 
-                document.getElementById('summaryTemplate').textContent = wizardData.template;
+                document.getElementById('summaryTemplate').textContent = wizardMode === 'edit' ? 'Custom (Edit)' : wizardData.template;
                 document.getElementById('summaryComponents').textContent = wizardData.components.join(', ') || 'None';
 
-                document.getElementById('summaryCost').textContent = '￥1500/月'; // Placeholder cost
+                const costEl = document.getElementById('summaryCost');
+                if (wizardMode === 'edit') {
+                    costEl.innerHTML = `
+                        <span class="text-decoration-line-through text-secondary me-2">￥1500/月</span>
+                        <span class="fw-bold text-primary">￥1850/月</span>
+                        <span class="badge bg-danger ms-2">+￥350</span>
+                    `;
+                } else {
+                    costEl.textContent = '￥1500/月'; // Placeholder cost
+                }
             }
 
             // Initialize
-            renderComponents(); // For initial 'custom' state
+            // renderComponents(); // Moved to initWizard
         });
     </script>
 </body>
