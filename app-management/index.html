@@ -63,6 +63,32 @@
             color: white;
             border-color: #004a96;
         }
+
+        /* Terraform Code Viewer */
+        .tf-code-pre {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            white-space: pre;
+            overflow: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+            height: 100%;
+            min-height: 0;
+        }
+        .tf-code-editor {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+            height: 100%;
+            min-height: 0;
+        }
+
+        /* TF step container: keep within modal and scroll inside panels */
+        .tf-pane {
+            height: 55vh;
+            max-height: 420px;
+            min-height: 260px;
+        }
     </style>
 </head>
 <body>
@@ -190,7 +216,7 @@
 
     <!-- Create App Wizard Modal -->
     <div class="modal fade" id="createAppModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-light">
                     <h5 class="modal-title">创建新应用</h5>
@@ -280,9 +306,34 @@
                         </div>
                     </div>
 
-                    <!-- Step 4: Summary -->
+                    <!-- Step 4: Terraform Code -->
                     <div id="step4" class="wizard-step">
-                        <h6 class="mb-3 border-bottom pb-2">Step 4: 汇总确认</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                            <h6 class="m-0">Step 4: Terraform 代码</h6>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="tfEditBtn" style="display: none;">编辑</button>
+                                <button type="button" class="btn btn-sm btn-primary" id="tfSaveBtn" style="display: none;">保存</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="tfCancelBtn" style="display: none;">取消</button>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 tf-pane">
+                            <div class="col-4 h-100">
+                                <div class="list-group h-100 overflow-auto" id="tfFileList"></div>
+                            </div>
+                            <div class="col-8 h-100 d-flex flex-column">
+                                <pre id="tfCodeContent" class="tf-code-pre"></pre>
+                                <textarea id="tfCodeEditor" class="form-control tf-code-editor" style="display:none;"></textarea>
+                                <div class="form-text mt-2" id="tfHintText">
+                                    说明：选择模板创建时，Terraform 代码为只读；选择自定义组件时可进入编辑模式。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Summary -->
+                    <div id="step5" class="wizard-step">
+                        <h6 class="mb-3 border-bottom pb-2">Step 5: 汇总确认</h6>
                         <div class="card bg-light mb-3">
                             <div class="card-body">
                                 <dl class="row mb-0">
@@ -330,7 +381,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             let currentStep = 1;
-            const totalSteps = 4;
+            const totalSteps = 5;
             let wizardMode = 'create'; // 'create' or 'edit'
             const modalEl = document.getElementById('createAppModal');
             const modal = new bootstrap.Modal(modalEl);
@@ -350,7 +401,11 @@
                 workspace: '',
                 template: 'custom',
                 components: [], // Current list of components
-                params: []
+                params: [],
+                tfFiles: [],
+                tfSelectedFileIndex: 0,
+                tfDirty: false,
+                tfEditing: false
             };
 
             // DOM Elements
@@ -362,6 +417,14 @@
             const componentList = document.getElementById('componentList');
             const addComponentBtn = document.getElementById('addComponentBtn');
             const componentSelect = document.getElementById('componentSelect');
+
+            // Step 4 (Terraform) Elements
+            const tfFileListEl = document.getElementById('tfFileList');
+            const tfCodeContentEl = document.getElementById('tfCodeContent');
+            const tfCodeEditorEl = document.getElementById('tfCodeEditor');
+            const tfEditBtn = document.getElementById('tfEditBtn');
+            const tfSaveBtn = document.getElementById('tfSaveBtn');
+            const tfCancelBtn = document.getElementById('tfCancelBtn');
 
             // Layout Elements
             const templateCol = document.getElementById('templateCol');
@@ -397,7 +460,11 @@
                     workspace: '',
                     template: 'custom',
                     components: [],
-                    params: []
+                    params: [],
+                    tfFiles: [],
+                    tfSelectedFileIndex: 0,
+                    tfDirty: false,
+                    tfEditing: false
                 };
 
                 if (mode === 'create') {
@@ -444,6 +511,7 @@
                     wizardData.components = ['Virtual Machine (Linux)', 'SQL Database (MSSQL)', 'Storage Account', 'Key Vault', 'App Service'];
                 }
                 renderComponents();
+                resetTerraformState();
             }
 
             // --- Navigation Logic ---
@@ -462,6 +530,13 @@
                     submitBtn.style.display = 'none';
                     nextBtn.innerText = '下一步';
                 }
+
+                if (step === 4) {
+                    // Ensure TF view is up-to-date when user arrives
+                    syncWizardDataFromInputs();
+                    ensureTerraformFiles();
+                    renderTerraformView();
+                }
             }
 
             nextBtn.addEventListener('click', () => {
@@ -470,6 +545,11 @@
                     if (currentStep === 2) {
                         // Prepare Step 3 data before moving
                         prepareParams();
+                    }
+                    if (currentStep === 3) {
+                        // Prepare Step 4 data before moving
+                        syncWizardDataFromInputs();
+                        ensureTerraformFiles();
                     }
                     currentStep++;
                     showStep(currentStep);
@@ -527,6 +607,7 @@
                         wizardData.components = [...templates[selectedTemp]];
                     }
                     renderComponents();
+                    resetTerraformState();
                 });
             });
 
@@ -535,7 +616,170 @@
                 if (val) {
                     wizardData.components.push(val);
                     renderComponents();
+                    resetTerraformState();
                 }
+            });
+
+            // --- Step 4: Terraform Code Logic ---
+            function resetTerraformState() {
+                wizardData.tfFiles = [];
+                wizardData.tfSelectedFileIndex = 0;
+                wizardData.tfDirty = false;
+                wizardData.tfEditing = false;
+                if (tfCodeEditorEl) tfCodeEditorEl.value = '';
+            }
+
+            function syncWizardDataFromInputs() {
+                wizardData.workspace = appWorkspace.value || '';
+                wizardData.code = appCode.value || '';
+                wizardData.name = appName.value || '';
+                wizardData.desc = appDesc.value || '';
+            }
+
+            function isTerraformEditable() {
+                // Requirement:
+                // - If Step2 selected a template (non-custom): TF code not editable
+                // - If Step2 selected components (custom): TF code editable
+                // In edit mode, we also allow editing.
+                if (wizardMode === 'edit') return true;
+                return wizardData.template === 'custom';
+            }
+
+            function ensureTerraformFiles() {
+                // If user hasn't manually edited/saved TF, keep it in sync with current wizard inputs.
+                if (wizardData.tfFiles && wizardData.tfFiles.length > 0 && wizardData.tfDirty) return;
+
+                const prevSelected = wizardData.tfSelectedFileIndex || 0;
+                wizardData.tfFiles = generateTerraformFiles();
+                wizardData.tfSelectedFileIndex = Math.min(prevSelected, wizardData.tfFiles.length - 1);
+                wizardData.tfEditing = false;
+            }
+
+            function generateTerraformFiles() {
+                const code = (wizardData.code || 'BASF_RG_AllowPE_Dev_Example').trim();
+                const name = (wizardData.name || 'Example App').trim();
+                const location = 'eastasia';
+                const environment = 'dev';
+
+                const isTemplateMode = wizardData.template !== 'custom' && wizardMode !== 'edit';
+                const selectedTemplate = wizardData.template;
+
+                if (isTemplateMode) {
+                    const mainTf = `terraform {\n  required_version = \">= 1.6.0\"\n}\n\n# Generated from template: ${selectedTemplate}\n# App: ${name}\n\nmodule \"app\" {\n  source = \"./templates/${selectedTemplate}\"\n\n  resource_group_name = var.resource_group_name\n  location            = var.location\n  environment         = var.environment\n}\n`;
+
+                    const variablesTf = `variable \"resource_group_name\" {\n  type = string\n  default = \"${code}\"\n}\n\nvariable \"location\" {\n  type = string\n  default = \"${location}\"\n}\n\nvariable \"environment\" {\n  type = string\n  default = \"${environment}\"\n}\n`;
+
+                    return [
+                        { name: 'main.tf', code: mainTf },
+                        { name: 'variables.tf', code: variablesTf }
+                    ];
+                }
+
+                // Custom/components mode
+                const resourceSnippets = {
+                    'Virtual Machine': `# Virtual Machine\nresource \"azurerm_linux_virtual_machine\" \"vm\" {\n  name                = \"${name.toLowerCase().replace(/\s+/g, '-')}-vm\"\n  resource_group_name = var.resource_group_name\n  location            = var.location\n  size                = var.vm_size\n\n  admin_username      = var.vm_admin_username\n  admin_password      = var.vm_admin_password\n\n  disable_password_authentication = false\n}\n`,
+                    'SQL Database': `# SQL Database\nresource \"azurerm_mssql_database\" \"db\" {\n  name      = \"${name.toLowerCase().replace(/\s+/g, '-')}-db\"\n  server_id = azurerm_mssql_server.sql.id\n  sku_name  = var.sql_sku\n}\n`,
+                    'Storage Account': `# Storage Account\nresource \"azurerm_storage_account\" \"stg\" {\n  name                     = replace(lower(\"${name}\"), \"-\", \"\")\n  resource_group_name      = var.resource_group_name\n  location                 = var.location\n  account_tier             = \"Standard\"\n  account_replication_type = \"LRS\"\n}\n`,
+                    'App Service': `# App Service\nresource \"azurerm_service_plan\" \"plan\" {\n  name                = \"${name.toLowerCase().replace(/\s+/g, '-')}-plan\"\n  resource_group_name = var.resource_group_name\n  location            = var.location\n  os_type             = \"Linux\"\n  sku_name            = var.app_sku\n}\n`,
+                    'Key Vault': `# Key Vault\nresource \"azurerm_key_vault\" \"kv\" {\n  name                = \"${name.toLowerCase().replace(/\s+/g, '-')}-kv\"\n  resource_group_name = var.resource_group_name\n  location            = var.location\n  tenant_id           = data.azurerm_client_config.current.tenant_id\n  sku_name            = var.kv_sku\n}\n\ndata \"azurerm_client_config\" \"current\" {}\n`
+                };
+
+                const lines = [];
+                lines.push(`terraform {\n  required_version = \">= 1.6.0\"\n}\n`);
+                lines.push(`# Generated from custom components`);
+                lines.push(`# App: ${name}`);
+                lines.push('');
+
+                wizardData.components.forEach(comp => {
+                    const key = Object.keys(resourceSnippets).find(k => comp.includes(k));
+                    if (key) lines.push(resourceSnippets[key]);
+                    else lines.push(`# ${comp}\n# TODO: add terraform resources for this component\n`);
+                });
+
+                if (wizardData.components.length === 0) {
+                    lines.push('# No components selected.');
+                }
+
+                const mainTf = lines.join('\n');
+
+                const variablesTf = `variable \"resource_group_name\" {\n  type = string\n  default = \"${code}\"\n}\n\nvariable \"location\" {\n  type = string\n  default = \"${location}\"\n}\n\nvariable \"environment\" {\n  type = string\n  default = \"${environment}\"\n}\n\n# VM\nvariable \"vm_size\" {\n  type    = string\n  default = \"Standard_D2s_v3\"\n}\nvariable \"vm_admin_username\" {\n  type    = string\n  default = \"azureuser\"\n}\nvariable \"vm_admin_password\" {\n  type      = string\n  sensitive = true\n  default   = \"\"\n}\n\n# SQL\nvariable \"sql_sku\" {\n  type    = string\n  default = \"S0\"\n}\n\n# App Service\nvariable \"app_sku\" {\n  type    = string\n  default = \"P1v2\"\n}\n\n# Key Vault\nvariable \"kv_sku\" {\n  type    = string\n  default = \"standard\"\n}\n`;
+
+                return [
+                    { name: 'main.tf', code: mainTf },
+                    { name: 'variables.tf', code: variablesTf }
+                ];
+            }
+
+            function renderTerraformView() {
+                // Build file list
+                tfFileListEl.innerHTML = '';
+                const files = wizardData.tfFiles || [];
+                files.forEach((f, idx) => {
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.className = 'list-group-item list-group-item-action' + (idx === wizardData.tfSelectedFileIndex ? ' active' : '');
+                    a.textContent = f.name;
+                    a.dataset.idx = String(idx);
+                    tfFileListEl.appendChild(a);
+                });
+
+                const selected = files[wizardData.tfSelectedFileIndex];
+                const code = selected ? selected.code : '暂无代码';
+
+                const editable = isTerraformEditable();
+                const isEditing = wizardData.tfEditing;
+
+                // Buttons
+                tfEditBtn.style.display = editable && !isEditing ? 'inline-block' : 'none';
+                tfSaveBtn.style.display = editable && isEditing ? 'inline-block' : 'none';
+                tfCancelBtn.style.display = editable && isEditing ? 'inline-block' : 'none';
+
+                // Viewer/editor
+                if (editable && isEditing) {
+                    tfCodeContentEl.style.display = 'none';
+                    tfCodeEditorEl.style.display = 'block';
+                    tfCodeEditorEl.value = code;
+                } else {
+                    tfCodeEditorEl.style.display = 'none';
+                    tfCodeContentEl.style.display = 'block';
+                    tfCodeContentEl.textContent = code;
+                }
+            }
+
+            tfFileListEl.addEventListener('click', (e) => {
+                const a = e.target.closest('a');
+                if (!a) return;
+                e.preventDefault();
+
+                // If editing, switching file discards unsaved changes (simple prototype behavior)
+                if (wizardData.tfEditing) {
+                    if (!confirm('当前文件未保存，切换将丢失修改，继续吗？')) return;
+                    wizardData.tfEditing = false;
+                }
+
+                wizardData.tfSelectedFileIndex = Number(a.dataset.idx);
+                renderTerraformView();
+            });
+
+            tfEditBtn.addEventListener('click', () => {
+                if (!isTerraformEditable()) return;
+                wizardData.tfEditing = true;
+                renderTerraformView();
+            });
+
+            tfCancelBtn.addEventListener('click', () => {
+                wizardData.tfEditing = false;
+                renderTerraformView();
+            });
+
+            tfSaveBtn.addEventListener('click', () => {
+                if (!isTerraformEditable()) return;
+                const files = wizardData.tfFiles || [];
+                if (!files[wizardData.tfSelectedFileIndex]) return;
+                files[wizardData.tfSelectedFileIndex].code = tfCodeEditorEl.value;
+                wizardData.tfDirty = true;
+                wizardData.tfEditing = false;
+                renderTerraformView();
             });
 
             // --- Step 3: Parameters Logic ---
