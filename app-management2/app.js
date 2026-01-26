@@ -6,6 +6,7 @@
       name: "智能制造控制中心",
       code: "IMCC",
       workspace: "制造云",
+      contact: "张伟 · zhangwei@basf.com",
       description: "覆盖生产监控、设备告警、产能分析的一体化平台。",
       summary: {
         repos: 4,
@@ -20,6 +21,7 @@
       name: "供应链协同门户",
       code: "SCP",
       workspace: "协同云",
+      contact: "李娜 · lina@basf.com",
       description: "供应链上下游协同、订单管理与交付监控。",
       summary: {
         repos: 2,
@@ -34,6 +36,7 @@
       name: "能源绩效洞察",
       code: "EPI",
       workspace: "能源云",
+      contact: "王强 · wangqiang@basf.com",
       description: "能源用量监控与绩效分析。",
       summary: {
         repos: 3,
@@ -121,6 +124,7 @@
           </td>
           <td>${app.code}</td>
           <td>${app.workspace}</td>
+          <td>${app.contact || "-"}</td>
           <td>
             <div class="summary-grid">
               <span>代码仓库 ${summary.repos}</span>
@@ -155,6 +159,7 @@
       appForm.elements.name.value = app.name;
       appForm.elements.code.value = app.code;
       appForm.elements.workspace.value = app.workspace;
+      appForm.elements.contact.value = app.contact || "";
       appForm.elements.description.value = app.description;
       appModal.show();
     };
@@ -177,6 +182,7 @@
         name: formData.get("name").trim(),
         code: formData.get("code").trim().toUpperCase(),
         workspace: formData.get("workspace"),
+        contact: formData.get("contact").trim(),
         description: formData.get("description").trim()
       };
 
@@ -265,6 +271,7 @@
         <div>
           <h2 class="h4 mb-1">${app.name}</h2>
           <div class="text-muted">代号：${app.code} · 工作区：${app.workspace}</div>
+          <div class="text-muted-small">联系人：${app.contact || "-"}</div>
         </div>
         <div class="text-muted-small">${app.description}</div>
       </div>
