@@ -111,6 +111,14 @@ body {
   border-bottom: none;
 }
 
+.summary-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
 .wizard-steps {
   display: flex;
   gap: 8px;

@@ -9,6 +9,7 @@
       description: "覆盖生产监控、设备告警、产能分析的一体化平台。",
       summary: {
         repos: 4,
+        dev: 8,
         sit: 6,
         uat: 2,
         prod: 1
@@ -22,6 +23,7 @@
       description: "供应链上下游协同、订单管理与交付监控。",
       summary: {
         repos: 2,
+        dev: 5,
         sit: 4,
         uat: 3,
         prod: 2
@@ -35,6 +37,7 @@
       description: "能源用量监控与绩效分析。",
       summary: {
         repos: 3,
+        dev: 4,
         sit: 5,
         uat: 1,
         prod: 1
@@ -103,6 +106,14 @@
       appTableBody.innerHTML = "";
       const filtered = apps.filter((app) => filterValue === "all" || app.workspace === filterValue);
       filtered.forEach((app) => {
+        const summary = {
+          repos: 0,
+          dev: 0,
+          sit: 0,
+          uat: 0,
+          prod: 0,
+          ...(app.summary || {})
+        };
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>
@@ -112,10 +123,11 @@
           <td>${app.workspace}</td>
           <td>
             <div class="summary-grid">
-              <span>代码仓库 ${app.summary.repos}</span>
-              <span>SIT ${app.summary.sit}</span>
-              <span>UAT ${app.summary.uat}</span>
-              <span>PROD ${app.summary.prod}</span>
+              <span>代码仓库 ${summary.repos}</span>
+              <span>DEV ${summary.dev}</span>
+              <span>SIT ${summary.sit}</span>
+              <span>UAT ${summary.uat}</span>
+              <span>PROD ${summary.prod}</span>
             </div>
           </td>
           <td class="text-end">
@@ -183,6 +195,7 @@
           ...payload,
           summary: {
             repos: 0,
+            dev: 0,
             sit: 0,
             uat: 0,
             prod: 0
@@ -258,6 +271,12 @@
     `;
 
     const resources = {
+      dev: {
+        env: "DEV",
+        status: "created",
+        count: 10,
+        cost: "¥ 18,900/月"
+      },
       sit: {
         env: "SIT",
         status: "created",
@@ -455,6 +474,7 @@
     };
 
     const renderAllCloudTiles = () => {
+      renderCloudTile("dev");
       renderCloudTile("sit");
       renderCloudTile("uat");
       renderCloudTile("prod");
