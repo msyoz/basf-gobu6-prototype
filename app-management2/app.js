@@ -147,6 +147,8 @@
       editingId = null;
       appModalTitle.textContent = "创建应用";
       appForm.reset();
+      appForm.elements.code.disabled = false;
+      appForm.elements.workspace.disabled = false;
       appForm.elements.workspace.innerHTML = buildWorkspaceOptions();
       appModal.show();
     };
@@ -155,6 +157,8 @@
       editingId = app.id;
       appModalTitle.textContent = "编辑应用";
       appForm.reset();
+      appForm.elements.code.disabled = true;
+      appForm.elements.workspace.disabled = true;
       appForm.elements.workspace.innerHTML = buildWorkspaceOptions(app.workspace);
       appForm.elements.name.value = app.name;
       appForm.elements.code.value = app.code;
@@ -180,8 +184,6 @@
       const formData = new FormData(appForm);
       const payload = {
         name: formData.get("name").trim(),
-        code: formData.get("code").trim().toUpperCase(),
-        workspace: formData.get("workspace"),
         contact: formData.get("contact").trim(),
         description: formData.get("description").trim()
       };
@@ -196,9 +198,14 @@
             : app
         );
       } else {
+        const createPayload = {
+          ...payload,
+          code: formData.get("code").trim().toUpperCase(),
+          workspace: formData.get("workspace")
+        };
         apps.unshift({
           id: `app-${Date.now()}`,
-          ...payload,
+          ...createPayload,
           summary: {
             repos: 0,
             dev: 0,
